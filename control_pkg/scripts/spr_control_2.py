@@ -1,39 +1,42 @@
 #!/usr/bin/env python
 import rospy
-from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
 import math
-from std_msgs.msg import String
 import sys
 
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 
 
 #define initial angular
 angular = 0.0
+orient_z = 0.0
 
 
 #Calculate current angular
 def Angular(messege):
     global angular
-    prinentation_z = messege.pose.pose.orientation.z
-    angular = math.degrees(2 * math.asin(prinentation_z))
+    orient_z = messege.pose.pose.orientation.z
+    angular = math.degrees(2 * math.asin(orient_z))
 
 
 #Rotate 180 degrees
 def Act_1():
+    global angular
     pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
     vel = Twist()
     vel.linear.x = 0.0
-    if angular > -179.5 and angular < 179.5:
+    if angular > -175.5 and angular < 170.0:
         vel.angular.z = 1.0
         pub_A1.publish(vel)
-    elif angular > -179.8 and angular < 179.8:
-        vel.angular.z = 0.3
+    elif angular >= 170.0 and angular < 179.5:
+        vel.angular.z = 0.1
         pub_A1.publish(vel)
     else:
         vel.angular.z = 0.0
         pub_A1.publish(vel)
         pub_image = Publisher('/contimg', String, 10)
+        sleep(0.5)
         pub_image.publish('002')
         sys.exit()
 
@@ -90,14 +93,14 @@ def callback_2(data):
     degree = data.data
     deg = float(degree) #Change string to float
     Act_2(deg)
-    rate.sleep()
+    sleep(60)
 
 
 if __name__ == '__main__':
     #define node
     rospy.init_node('act1_publisher')
-    rate = rospy.Rate(90)
-    sub = rospy.Subscriber('/srtcont', String, callback)
+
     sub_odo = rospy.Subscriber('/odom', Odometry, Angular)
+    sub = rospy.Subscriber('/srtcont', String, callback)
     sub_second = rospy.Subscriber('sound', String, callback_2)
     rospy.spin()
