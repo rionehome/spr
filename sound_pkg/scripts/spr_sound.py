@@ -6,9 +6,9 @@ from std_msgs.msg import String
 from pocketsphinx import LiveSpeech,get_model_path
 import os
 import socket
+import getting_array as ga
 dammy = os.path.abspath("spr_sound.py")
 pre = dammy.strip("/scripts/spr_sound.py")
-
 kw_path = '/'+pre+'/dictionary/rosquestion.list'
 es_path = '/'+pre+'/dictionary/espeak.list'
 dc_path = '/'+pre+'/dictionary/rosquestion.dict'
@@ -75,9 +75,11 @@ def recognize_question():
 
 def callback(data):
     if data.data == "003":
-    #if data.data == "001":
         os.system("espeak 'detect faces'")
-	rospy.signal_shutdown("recognize_question")
+        get_angle()
+    if data.data == "005":
+        recognize_question()
+    rospy.signal_shutdown("recognize_question")
 def calc_cos(list1,list2):
     sum = 0
     for word in list1:
@@ -87,17 +89,16 @@ def calc_cos(list1,list2):
     v2 = math.sqrt(list2)
     return sum/(v1*v2)
 def get_angle():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(('127.0.0.1', 50007))
-    while True:
-        data = s.recv(1024)# the type of data is string
-        return data
+    text = ga.get_array()
+    print text
 def listener():
     rospy.Subscriber("/srtqeus",String,callback)
-    #rospy.Subscriber('/srtcont',String,queue_size=10)
+
+    rospy.Subscriber("/srtga",String,callback)
     rospy.spin()
 if __name__ == '__main__':
     rospy.init_node('talker')
     #recognize_sign()
     #listener()
-    recognize_question()
+    #recognize_question()
+    get_angle()
