@@ -1,15 +1,16 @@
 import rospy
 import sys
-sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+sys.path.remove('/opt/ros/melodic/lib/python2.7/dist-packages')
 from std_msgs.msg import String
 import cv2
 import numpy as np
 import os
-dammy = os.path.abspath("spr_image.py")
-pre = dammy.strip("/scripts/spr_image.py")
-face_cascade_path = '/'+pre+'g/etc/opencv-3.3.1/data/haarcascades/haarcascade_frontalface_default.xml'
+dammy = os.path.abspath('spr_image.py')
+face_cascade_path = dammy.replace("/scripts/spr_image.py","/etc/opencv-3.3.1/data/haarcascades/haarcascade_frontalface_default.xml")
+ 
 
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
+
 
 ORG_WINDOW_NAME = "cap"
 GAUSSIAN_WINDOW_NAME = "cap_gray"
