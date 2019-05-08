@@ -6,8 +6,8 @@ from pocketsphinx import LiveSpeech
 import struct
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
-text1='start'
-speech=LiveSpeech(lm=False,keyphrase='how about you',kws_threshold=1e-40)
+
+
 PARAMETERS = {
         'DOAANGLE': (21, 0, 'int', 359, 0, 'ro', 'DOA angle. Current value. Orientation depends on build configuration.'),
             'SPEECHDETECTED': (19, 22, 'int', 1, 0, 'ro', 'Speech detection status.', '0 = false (no speech detected)', '1 = true (speech detected)')
@@ -16,10 +16,10 @@ PARAMETERS = {
 TIMEOUT=100000
 
 
-def get_array():
+def get_array(text):
 
     if dev:
-        
+        speech=LiveSpeech(lm=False,keyphrase=text,kws_threshold=1e-40)
         while True:
             try:
                 if read('SPEECHDETECTED')==1:
@@ -63,4 +63,4 @@ def direction():
     return read('DOAANGLE')
 
 if __name__ =="__main__":
-    get_array()
+    get_array("how about you")
