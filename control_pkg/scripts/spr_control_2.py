@@ -6,7 +6,7 @@ import sys
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
-
+from getting_array as ga
 
 #define initial angular
 angular = 0.0
@@ -89,8 +89,8 @@ def Act_2(degree):
 
 
 #Catch degree from home_respeaker, Act_2 execute.
-def callback_2(data):
-    degree = data.data
+def callback_2(text):
+    degree = ga.get_array()
     deg = float(degree) #Change string to float
     Act_2(deg)
     sleep(60)
@@ -99,7 +99,6 @@ def callback_2(data):
 if __name__ == '__main__':
     #define node
     rospy.init_node('act1_publisher')
-
     sub_odo = rospy.Subscriber('/odom', Odometry, Angular)
     sub = rospy.Subscriber('/srtcont', String, callback)
     sub_second = rospy.Subscriber('sound', String, callback_2)
