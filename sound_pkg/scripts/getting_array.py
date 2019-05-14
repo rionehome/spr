@@ -19,7 +19,7 @@ TIMEOUT=100000
 def get_array(text):
 
     if dev:
-        speech=LiveSpeech(lm=False,keyphrase=text,kws_threshold=1e-40)
+        speech=LiveSpeech(lm=False,keyphrase=text,kws_threshold=1e-20)
         while True:
             try:
                 if read('SPEECHDETECTED')==1:
@@ -27,11 +27,10 @@ def get_array(text):
                         temp = direction()
                         if kw != " ":
                             print("get "+str(kw)+" from "+str(temp))
+                            return temp
             except KeyboardInterrupt:
                 break
-def poskesuphi():
-    for kw in speech:
-        return kw
+
 def read(name):
     try:
         data = PARAMETERS[name]

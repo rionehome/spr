@@ -6,6 +6,7 @@ from std_msgs.msg import String
 from pocketsphinx import LiveSpeech,get_model_path
 import os
 import socket
+import time
 import getting_array as ga
 dammy = os.path.abspath("spr_sound.py")
 pre = dammy.strip("/scripts/spr_sound.py")
@@ -22,21 +23,17 @@ def recognize_sign():
         speech = LiveSpeech(lm=False, keyphrase='start game', kws_threshold=1e-20)#set pocketsphinx's module
         for phrase in speech:
             sp = str(phrase)
-	    if sp == text:
+        if sp == text:
                 break
         else:
             continue
         break
 
-    publish_sign(text)
-
-def publish_sign(phrase):
-
     os.system("espeak 'Hello, everyone, let start game'")#Speech sign
 
-    pub = rospy.Publisher('srtcont',String,queue_size=10)#node  is srtcont which communicates with control systems.
+
     pub.publish('001')
-    rospy.loginfo(phrase)
+    rospy.loginfo(text)
 
 def recognize_question():
 
@@ -76,7 +73,7 @@ def recognize_question():
 def callback(data):
     if data.data == "003":
         os.system("espeak 'detect faces'")
-        get_angle()
+        print (ga.get_array("look here"))
     if data.data == "005":
         recognize_question()
     rospy.signal_shutdown("recognize_question")
@@ -88,17 +85,19 @@ def calc_cos(list1,list2):
     v1 = math.sqrt(list1)
     v2 = math.sqrt(list2)
     return sum/(v1*v2)
-def get_angle():
-    text = ga.get_array()
-    print text
+
 def listener():
     rospy.Subscriber("/srtqeus",String,callback)
-
     rospy.Subscriber("/srtga",String,callback)
     rospy.spin()
 if __name__ == '__main__':
     rospy.init_node('talker')
+    pub = rospy.Publisher('/srtcont',String,queue_size=10)#node  is srtcont which communicates with control systems.
     #recognize_sign()
-    #listener()
     #recognize_question()
-    get_angle()
+    rospy.Subscriber("/srtqeus",String,callback)
+    rospy.Subscriber("/srtga",String,callback)
+    pub2 =  rospy.Publisher('/sound',String,queue_size=10)
+    pub2.publish(str(ga.get_array("look here")))
+    rospy.spin()
+    

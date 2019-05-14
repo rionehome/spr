@@ -21,19 +21,23 @@ def Angular(messege):
 
 #Rotate 180 degrees
 def Act_1():
-    pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+
     vel = Twist()
     vel.linear.x = 0.0
     if angular > -179.5 and angular < 179.5:
+        print "01"
         vel.angular.z = 1.0
         pub_A1.publish(vel)
     elif angular > -179.8 and angular < 179.8:
         vel.angular.z = 0.3
+        print "02"
         pub_A1.publish(vel)
     else:
+        print "03"
         vel.angular.z = 0.0
         pub_A1.publish(vel)
-        pub_image = Publisher('/contimg', String, 10)
+        
+        print "04"
         pub_image.publish('002')
         sys.exit()
 
@@ -48,54 +52,48 @@ def callback(data):
 
 #Sound source localization
 def Act_2(degree):
-    pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
-    pub_sound = rospy.Publisher('/timing', String, 10) #End rotate cue 
     vel = Twist()
     vel.linear.x = 0.0
     if degree >= 0.0 and degree < 180.0:
-        max_deg = degree + 0.3
-        min_deg = degree - 0.3
-        if angular < min_deg and angular > max_deg:
-            vel.angular.z = 1.0
-            pub_A2.publish(vel)
+        if angular < degree-0.5:
+            vel.angular.z = 1
+            pub_A1.publish(vel)
+        elif angular > degree+0.5:
+            vel.angular.z = -1
+            pub_A1.publish(vel)
         else:
-            vel.angular.z = 0.0
-            pub_A2.publish(vel)
-            pub_sound.publish('end')
-    elif degree > 180.0 and degree <= 360.0:
-        degree = degree - 360.0
-        max_deg = degree - 0.3
-        min_deg = degree + 0.3
-        if angular < min_deg and angular > max_deg:
-            vel.angular.z = 1.0
-            pub_A2.publish(vel)
-        else:
-            vel.angular.z = 0.0
-            pub_A2.publish(vel)
-            pub_sound.publish('end')
+            vel.angular.z = 0
+            pub_A1.publish(vel)
+            sys.exit()
     else:
-        max_deg = degree - 359.5
-        min_deg = degree - 0.5
-        if angural < min_deg and angular > max_deg:
-            vel.angular.z = 1.0
-            pub_A2.publish(vel)
+        degree = degree - 360.0
+        if  angular < degree-0.5:
+            vel.angular.z = -1
+            pub_A1.publish(vel)
+        elif angular >degree +0.5:
+            vel.angular.z = 1
+            pub_A1.publish(vel)
         else:
-            vel.angular.z = 0.0
-            pub_A2.publish(vel)
-            pub_sound.publish('end')
-
-
+            vel.angular.z = 0
+            pub_A1.publish(vel)
+            sys.exit()
+        
 #Catch degree from home_respeaker, Act_2 execute.
 def callback_2(data):
     degree = data.data
     deg = float(degree) #Change string to float
-    Act_2(deg)
+    while not rospy.is_shutdown():
+        Act_2(deg)
 
 
 if __name__ == '__main__':
     #define node
     rospy.init_node('act1_publisher')
+    pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    pub_image = rospy.Publisher('/contimg', String, queue_size=10)
+    pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    pub_sound = rospy.Publisher('/timing', String, queue_size=10) 
     sub = rospy.Subscriber('/srtcont', String, callback)
     sub_odo = rospy.Subscriber('/odom', Odometry, Angular)
-    sub_second = rospy.Subscriber('sound', String, callback_2)
+    sub_second = rospy.Subscriber('/sound', String, callback_2)
     rospy.spin()

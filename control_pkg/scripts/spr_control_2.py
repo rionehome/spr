@@ -2,12 +2,11 @@
 import rospy
 import math
 import sys
-
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
-from getting_array as ga
-
+import getting_array as ga
+import time
 #define initial angular
 angular = 0.0
 orient_z = 0.0
@@ -22,8 +21,8 @@ def Angular(messege):
 
 #Rotate 180 degrees
 def Act_1():
-    global angular
-    pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    
+    
     vel = Twist()
     vel.linear.x = 0.0
     if angular > -175.5 and angular < 170.0:
@@ -35,24 +34,25 @@ def Act_1():
     else:
         vel.angular.z = 0.0
         pub_A1.publish(vel)
-        pub_image = Publisher('/contimg', String, 10)
-        sleep(0.5)
+        
+        time.sleep(1)
         pub_image.publish('002')
         sys.exit()
 
 
 #Catch cue from sound, Act_1 execute.
+"""
 def callback(data):
     if data.data == "001":
         odom = Odometry()
         while not rospy.is_shutdown():
             Act_1()
-
+"""
 
 #Sound source localization
 def Act_2(degree):
-    pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
-    pub_sound = rospy.Publisher('/timing', String, 10) #End rotate cue 
+    global angular
+    print "ok"
     vel = Twist()
     vel.linear.x = 0.0
     if degree >= 0.0 and degree < 180.0:
@@ -79,7 +79,7 @@ def Act_2(degree):
     else:
         max_deg = degree - 359.5
         min_deg = degree - 0.5
-        if angural < min_deg and angular > max_deg:
+        if angular < min_deg and angular > max_deg:
             vel.angular.z = 1.0
             pub_A2.publish(vel)
         else:
@@ -89,17 +89,23 @@ def Act_2(degree):
 
 
 #Catch degree from home_respeaker, Act_2 execute.
-def callback_2(text):
-    degree = ga.get_array()
-    deg = float(degree) #Change string to float
-    Act_2(deg)
-    sleep(60)
-
+def callback(data):
+    print data
+    deg = float(data.data) #Change string to float
+    odom = Odometry()
+    while not rospy.is_shutdown():
+        Act_1()
 
 if __name__ == '__main__':
     #define node
     rospy.init_node('act1_publisher')
+    #pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    pub_image = rospy.Publisher('/contimg', String, queue_size=10)
     sub_odo = rospy.Subscriber('/odom', Odometry, Angular)
-    sub = rospy.Subscriber('/srtcont', String, callback)
-    sub_second = rospy.Subscriber('sound', String, callback_2)
+    #sub = rospy.Subscriber('/srtcont', String, callback)
+    pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    pub_sound = rospy.Publisher('/timing', String, queue_size=10) #End rotate cue 
+    sub_second = rospy.Subscriber('sound', String, callback)
+    
     rospy.spin()
+    
