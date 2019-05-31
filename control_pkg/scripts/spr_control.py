@@ -24,21 +24,20 @@ def Act_1():
 
     vel = Twist()
     vel.linear.x = 0.0
-    if angular > -179.5 and angular < 179.5:
+    if angular > -175 and angular < 175:
+        vel.angular.z = 0.5
+        pub_A1.publish(vel)
         print "01"
-        vel.angular.z = 1.0
-        pub_A1.publish(vel)
-    elif angular > -179.8 and angular < 179.8:
-        vel.angular.z = 0.3
-        print "02"
-        pub_A1.publish(vel)
+    #elif angular > -179.8 and angular < 179.8:
+    #    vel.angular.z = 0.3
+    #    pub_A1.publish(vel)
+    #    print "02"
     else:
-        print "03"
         vel.angular.z = 0.0
         pub_A1.publish(vel)
-        
-        print "04"
-        pub_image.publish('002')
+        pub_image.publish("002")
+        rospy.loginfo("002")
+        print "03"
         sys.exit()
 
 
