@@ -22,22 +22,28 @@ def NowAngular(message):
 
 def recognize_sign():
     while True:
-        speech = LiveSpeech(lm=False, keyphrase='start game', kws_threshould=1e-20)
+        speech = LiveSpeech(
+            lm=False, 
+            keyphrase=text,
+            kws_threshold=1e-40
+            )
+        
         for phrase in speech:
             wording = str(phrase)
             if wording == text:
                 break
-            else:
-                continue
+        else:
+            continue
         break    
     publish_sign(text)
 
 
 def publish_sign(phrase):
-    os.system("espeak 'Hello, everyone, let's start game'")
+
+    os.system('espeak "Hello, everyone, let\'s start game"')
     r = rospy.Rate(10)
     r.sleep()
-    pub01 = rospy.Publisher('Turn_180', String, queue_size=10)
+    pub01 = rospy.Publisher('Turn_180',String, queue_size=10)
     pub01.publish('01')
     rospy.loginfo(phrase)
 
@@ -45,6 +51,5 @@ def publish_sign(phrase):
 if __name__ == '__main__':
     rospy.init_node('start_spr')
     odom_sub = rospy.Subscriber('/odom', Odometry, NowAngular)
-    recognze_sign()
-    publish_sign()
+    recognize_sign()
     rospy.spin()
