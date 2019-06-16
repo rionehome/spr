@@ -37,7 +37,7 @@ def callback(data):
 		get_angle()
 
 
-if __name__ == '__name__':
+if __name__ == '__main__':
 	rospy.init_node('sound_localization')
 	sub04 = rospy.Subscriber('sound_localization', String, callback)
 	rospy.spin()

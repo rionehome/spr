@@ -72,3 +72,4 @@ def calc_cos(list1, list2):
 if __name__ == '__main__':
 	rospy.init_node('riddle_game_spr')
 	sub03 = rospy.Subscriber('detect_face', String, callback)
+	rospy.spin()

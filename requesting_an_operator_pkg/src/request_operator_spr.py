@@ -60,3 +60,4 @@ def callback(data):
 if __name__ == "__main__":
 	rospy.init_node('req_operator_spr')
 	sub02 = rospy.Subscriber('face_recognize', String, callback)
+	rospy.spin()
