@@ -8,7 +8,7 @@ from std_msgs.msg import String
 
 sys.path.remove('/opt/ros/melodic/lib/python2.7/dist-packages')
 dammy = os.path.abspath('request_operator_pkg.py')
-face_cascade_path = dammy.replace("/scripts/spr_image.py",
+face_cascade_path = dammy.replace("/src/request_operator_spr.py",
 								  "/etc/opencv-3.1.1/data/haarcascades/haarcascade_frontalface_default.xml")
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
 ORG_WINDOW_NAME = "cap"
