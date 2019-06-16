@@ -42,7 +42,7 @@ def publish_sign(phrase):
 	r = rospy.Rate(10)
 	pub01 = rospy.Publisher('Turn_180', String, queue_size=10)
 	pub01.publish('01')
-	r.sleep(5)
+	r.sleep()
 	rospy.loginfo(phrase)
 
 

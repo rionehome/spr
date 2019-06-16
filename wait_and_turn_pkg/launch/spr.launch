@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="requesting_an_operator_pkg" name="req_operator_spr" type="request_operator_spr.py"/>
+    <node pkg="Sound_source_localization_pkg" name="sound_localization" type="sound_localization_spr.py"/>
+    <node pkg="start_pkg" name="start_spr" type="start_spr.py"/>
+    <node pkg="the_riddle_game_pkg" name="riddle_game_spr" type="riddle_game_spr.py"/>
+    <node pkg="wait_and_turn_pkg" name="wait_turn_spr" type="wait_turn_spr.py"/>
+</launch>
