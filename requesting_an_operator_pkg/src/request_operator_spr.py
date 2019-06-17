@@ -6,7 +6,7 @@ import os
 import numpy as np
 from std_msgs.msg import String
 
-sys.path.remove('/opt/ros/melodic/lib/python2.7/dist-packages')
+# sys.path.remove('/opt/ros/melodic/lib/python2.7/dist-packages')
 dammy = os.path.abspath('request_operator_pkg.py')
 face_cascade_path = dammy.replace("/src/request_operator_spr.py",
 								  "/etc/opencv-3.1.1/data/haarcascades/haarcascade_frontalface_default.xml")
@@ -21,9 +21,10 @@ def face_count():
 	height, width, channels = c_frame.shape
 	cv2.namedWindow(ORG_WINDOW_NAME)
 	cv2.namedWindow(GAUSSIAN_WINDOW_NAME)
+	face_list = None
 	while end_flag == True:
 		image = c_frame
-		image_gray = cv2.cvtColor(image, cv2.COLOR_BRG2GRAY)
+		image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 		face_list = face_cascade.detectMultiScale(image_gray, minSize=(100, 100))
 		for x, y, w, h in face_list:
 			cv2.rectangle(image_gray, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -53,8 +54,10 @@ def face_count():
 def callback(data):
 	if data.data == '02':
 		face_count()
-		# recognize_gender()
-		# choice_operetor()
+
+
+# recognize_gender()
+# choice_operetor()
 
 
 if __name__ == "__main__":

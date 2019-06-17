@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # ! -*- coding:utf-8 -*-
+import time
+
 import rospy
 import sys
 import math
@@ -41,6 +43,7 @@ def publish_sign(phrase):
 	os.system('espeak "Hello, everyone, let\'s start game"')
 	r = rospy.Rate(10)
 	pub01 = rospy.Publisher('Turn_180', String, queue_size=10)
+	time.sleep(1)
 	pub01.publish('01')
 	r.sleep()
 	rospy.loginfo(phrase)
@@ -48,5 +51,6 @@ def publish_sign(phrase):
 
 if __name__ == '__main__':
 	rospy.init_node('start_spr')
+	print "start"
 	recognize_sign()
 	rospy.spin()
