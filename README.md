@@ -12,7 +12,7 @@ requesting_an_operator_pkg:群衆認識、及び男女認識
 
 the_riddle_game_pkg:リドルゲーム
 
-Sound_source_localization_pkg:音源定位
+sound_source_localization_pkg:音源定位
 
 ## Requirement
 
