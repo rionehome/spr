@@ -24,6 +24,11 @@ RespeakerをSound_source_localization_pkgで使用します。
 
 requesting_an_operator_pkgはopencvを使用します。etc内にopencvのversion3.1.1を入れてください。
 
+# REQUIREMNT 追記
+
+Ri-oneドライブからよっしー先輩の画像モデルをダウンロードして、その中のフォルダmale,femaleをrequesting_an_operator_pkgのimagesに入れてください。
+
+
 ## Usage
 まずは
 
