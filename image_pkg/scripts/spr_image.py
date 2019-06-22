@@ -9,7 +9,7 @@ import os
 
 dammy = os.path.abspath('spr_image.py')
 face_cascade_path = dammy.replace("/scripts/spr_image.py",
-								  "/etc/opencv-3.3.1/data/haarcascades/haarcascade_frontalface_default.xml")
+								  "/etc/opencv-3.3.1/data/haarcascades/haarcascade_upperbody.xml")
 
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
 
