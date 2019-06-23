@@ -8,7 +8,7 @@ from nav_msgs.msg import Odometry
 import sys
 import socket
 import getting_array as ga
-
+angular=0.0
 
 def NowAngular(message):
     global angular
@@ -17,6 +17,7 @@ def NowAngular(message):
 
 
 def sound_localization(degree):
+    global angular
     pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
     vel = Twist()
     vel.linear.x = 0.0
@@ -43,20 +44,19 @@ def sound_localization(degree):
         pub_A2.publish(vel)
 
 
-def get_angle():
-	text = ga.get_array()
-	deg = float(text)
-	sound_localization(deg)
-	r = rospy.Rate(150)
-	r.sleep()
-
-
-def callback(data):
-	if data.data == '04':
-		get_angle()
+def get_angle(msg):
+    text = ga.get_array(msg)
+    deg = float(text)
+    sound_localization(deg)
+    r = rospy.Rate(150)
+    r.sleep()
 
 
 if __name__ == '__main__':
-	rospy.init_node('sound_localization')
-	sub04 = rospy.Subscriber('sound_localization', String, callback)
-	rospy.spin()
+    rospy.init_node('sound_localization')
+    sub04 = rospy.wait_for_message('sound_localization', String)
+    if sub04.data == '04':
+        print "get message"
+        get_angle("look here")
+    else:
+        print "message error"

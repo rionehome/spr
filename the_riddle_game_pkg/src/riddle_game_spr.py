@@ -36,7 +36,7 @@ def recognize_question():
 
 	# read Speech phrase list file
 	with open(es_path) as fi:
-		pl = [ki.strip() for ki in fi.readline()]
+		pl = [ki.strip() for ki in fi.readlines()]
 		pl.pop()
 	print pl
 
@@ -44,9 +44,10 @@ def recognize_question():
 		sp = str(phrase)
 		print(sp)
 		for i in range(0, 6):
+		
 			if sp == qw[i]:
 				os.system("espeak '{}'".format(pl[i]))
-
+				return
 
 
 
@@ -62,11 +63,13 @@ def calc_cos(list1, list2):
 
 if __name__ == '__main__':
 	rospy.init_node('riddle_game_spr')
+	print "reiddlegame"
 	sub03 = rospy.wait_for_message('detect_face', String)	
-	if sub03 == '03':
+	if sub03.data == '03':
 		print "recognize_question()"
 		recognize_question()
 		pub04 = rospy.Publisher('sound_localization', String, queue_size=10)
 		rospy.sleep(2)
+		rospy.loginfo("publish")
 		pub04.publish('04')
 	rospy.spin()

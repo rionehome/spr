@@ -43,29 +43,35 @@ class Face_cut:
 			self.face_count()
 	
 	def face_count(self):
-		print "wait 10 munites"
-		rospy.sleep(10)
+		while True:
+			print "wait 10 munites"
+			rospy.sleep(10)
 		
-		while self.image_org is None:
-			rospy.Subscriber("/camera/rgb/image_raw", Image, self.get_image)
+			while self.image_org is None:
+				rospy.Subscriber("/camera/rgb/image_raw", Image, self.get_image)
 		
-		image_gray = cv2.cvtColor(self.image_org,cv2.COLOR_BGR2GRAY)
-		cascade = cv2.CascadeClassifier(face_cascade_path)
-		facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
-		print facerect
+			image_gray = cv2.cvtColor(self.image_org,cv2.COLOR_BGR2GRAY)
+			cascade = cv2.CascadeClassifier(face_cascade_path)
+			facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
+			print facerect
+			if len(facerect)<=0:
+				print "顔が認識できません"
+				continue
 		
-		if os.path.exists(pre_path) == False:
-			os.mkdir(pre_path)
 		
-		for i in range(len(facerect)):
-			[x,y,w,h] = facerect[i]
-			print facerect[i]
-			imgCroped = cv2.resize(self.image_org[y:y + h, x:x + w], (96, 96))##パラメータ変更要
-			filename = pre_path + ("/img_%02d.jpg" % i)
-			cv2.imwrite(filename, imgCroped)
-		self.pub3.publish('03')
-		m_count = mf.main("男女認識")
-		f_count = len(facerect) - m_count
+			if os.path.exists(pre_path) == False:
+				os.mkdir(pre_path)
+		
+			for i in range(len(facerect)):
+				[x,y,w,h] = facerect[i]
+				print facerect[i]
+				imgCroped = cv2.resize(self.image_org[y:y + h, x:x + w], (96, 96))##パラメータ変更要
+				filename = pre_path + ("/img_%02d.jpg" % i)
+				cv2.imwrite(filename, imgCroped)
+			m_count = mf.main("男女認識")
+			f_count = len(facerect) - m_count
+			self.pub3.publish('03')
+			break
 
 if __name__ == "__main__":
 	Face_cut()
