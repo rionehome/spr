@@ -48,11 +48,6 @@ def recognize_question():
 				os.system("espeak '{}'".format(pl[i]))
 
 
-def callback(data):
-	print "callback"
-	if data.data == '03':
-		flag=True
-		return
 
 
 def calc_cos(list1, list2):
@@ -67,9 +62,9 @@ def calc_cos(list1, list2):
 
 if __name__ == '__main__':
 	rospy.init_node('riddle_game_spr')
-	sub03 = rospy.Subscriber('detect_face', String, callback)
-	if flag == True:
-		print "True"
+	sub03 = rospy.wait_for_message('detect_face', String)	
+	if sub03 == '03':
+		print "recognize_question()"
 		recognize_question()
 		pub04 = rospy.Publisher('sound_localization', String, queue_size=10)
 		rospy.sleep(2)
