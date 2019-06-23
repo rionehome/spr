@@ -23,11 +23,12 @@ from chainer import training
 from chainer.training import extensions
 import re
 import matplotlib.pyplot as plt
+import glob
 dicpath = os.path.dirname(os.path.abspath(__file__))
-dirpath = dicpath.strip("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/predict")
-modelpath = dicpath.strip("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/AlexlikeMSGD.model")
-female_path = dicpath.strip("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/female")
-male_path = dicpath.strip("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/male")
+dirpath = dicpath.replace("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/predict/")
+modelpath = dicpath.replace("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/AlexlikeMSGD.model")
+female_path = dicpath.replace("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/female")
+male_path = dicpath.replace("requesting_an_operator_pkg/src","requesting_an_operator_pkg/images/male")
 
 def image2data(pathsAndLabels):
 	allData = []
@@ -54,7 +55,6 @@ def image2data(pathsAndLabels):
 	return data
 
 def main(msg):
-	node_end = rospy.Publisher("messenger", String, queue_size=10, latch=True)
 	print(msg)
 	cls_names = ['女', '男']
 
@@ -98,4 +98,4 @@ def main(msg):
 	#os.system('espeak -v f5 "{Who would like to play a riddle game with me?}" -s 100')
 	#os.system('espeak -v f5 "{I will wait 5 seconds until you come here}" -s 100')
 	#sleep(5)
-    return m_count
+	return m_count

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ! -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 import sys
 
 import math
@@ -8,13 +8,11 @@ from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
 import os
 import socket
-
-dammy = os.path.abspath('riddle_game_spr.py')
-pre = dammy.strip("riddle_game_spr.py")
-kw_path = '/' + pre + '/dictionary/rosquestion.list'
-es_path = '/' + pre + '/dictionary/espeak.list'
-dc_path = '/' + pre + '/dictionary/rosquestion.dict'
-
+dicpath = os.path.dirname(os.path.abspath(__file__))
+kw_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/rosquestion.list")
+es_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/espeak.list")
+dc_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/rosquestion.dict")
+flag = False
 
 def recognize_question():
 	model_path = get_model_path()
@@ -51,12 +49,10 @@ def recognize_question():
 
 
 def callback(data):
+	print "callback"
 	if data.data == '03':
-		os.system("espeak 'detect faces'")
-		recognize_question()
-		pub04 = rospy.Publisher('sound_localization', String, queue_size=10)
-		pub04.publish('04')
-		sys.exit()
+		flag=True
+		return
 
 
 def calc_cos(list1, list2):
@@ -72,4 +68,10 @@ def calc_cos(list1, list2):
 if __name__ == '__main__':
 	rospy.init_node('riddle_game_spr')
 	sub03 = rospy.Subscriber('detect_face', String, callback)
+	if flag == True:
+		print "True"
+		recognize_question()
+		pub04 = rospy.Publisher('sound_localization', String, queue_size=10)
+		rospy.sleep(2)
+		pub04.publish('04')
 	rospy.spin()
