@@ -1,186 +1,97 @@
-# -*- coding: utf-8 -*-
-import chainer
-from chainer import training
-from chainer.training import extensions
-import chainer.links as L
-import chainer.functions as F
-from chainer import initializers
-import math
+from chainer import Chain
+from chainer import links as L
+from chainer import functions as F
 
+from numpy import argmax, array
 
-class Alex(chainer.Chain):
+# channel width  height
+#    3     640    640
 
+class SPR(Chain):
     def __init__(self):
-        super(Alex, self).__init__(
-            conv1=L.Convolution2D(3, 48, 3, stride=1),
-            bn1=L.BatchNormalization(48),
-            conv2=L.Convolution2D(48, 128, 3, pad=1),
-            bn2=L.BatchNormalization(128),
-            conv3=L.Convolution2D(128, 192, 3, pad=1),
-            conv4=L.Convolution2D(192, 192, 3, pad=1),
-            conv5=L.Convolution2D(192, 128, 3, pad=1),
-            fc6=L.Linear(None, 1024),
-            fc7=L.Linear(None, 1024),
-            fc8=L.Linear(None, 2)
-        )
-        self.train = True
+        super(SPR, self).__init__()
+
+        with self.init_scope():
+            self.conv1 = L.Convolution2D(None, 16, 5, 1)
+            # maxpooling
+            self.conv2 = L.Convolution2D(None, 32, 5, 1)
+            # maxpooling
+            self.conv3 = L.Convolution2D(None, 64, 3, 1)
+            self.conv4 = L.Convolution2D(None, 64, 3, 1)
+            self.conv5 = L.Convolution2D(None, 32, 3, 1)
+            # maxpooling
+            self.line6 = L.Linear(None, 2048)
+            self.line7 = L.Linear(None, 1024)
+            self.line8 = L.Linear(None, 2)
 
     def __call__(self, x):
-        h = self.bn1(self.conv1(x))
-        h = F.max_pooling_2d(F.relu(h), 3, stride=2)
-        h = self.bn2(self.conv2(h))
-        h = F.max_pooling_2d(F.relu(h), 3, stride=2)
+        h = F.relu(self.conv1(x))
+        h = F.max_pooling_2d(h, 3, 1)
+        h = F.relu(self.conv2(h))
+        h = F.max_pooling_2d(h, 3, 1)
         h = F.relu(self.conv3(h))
         h = F.relu(self.conv4(h))
         h = F.relu(self.conv5(h))
-        h = F.max_pooling_2d(F.relu(h), 2, stride=2)
-        h = F.dropout(F.relu(self.fc6(h)))
-        h = F.dropout(F.relu(self.fc7(h)))
-        h = self.fc8(h)
+        h = F.max_pooling_2d(h, 3, 1)
+        h = F.relu(self.line6(h))
+        h = F.relu(self.line7(h))
+        h = F.relu(self.line8(h))
+
         return h
 
-class Model:
+
+class Cifar(Chain):
     def __init__(self):
-        self.model = L.Classifier(Alex())
-    def load(self, filename):
-        chainer.serializer.load_npz(filename, self.model)
-    def save(self, filename):
-        chainer.serializer.save_npz(filename, self.model)
-    def predictor(self, x):
-            return self.model.predictor(x)
-    def get_model(self):
-        return self.model
+        super(Cifar, self).__init__()
 
-class GoogLeNet(chainer.Chain):
+        with self.init_scope():
+            self.conv1  = L.Convolution2D(3, 3, 5, pad=2)
+            self.conv2  = L.Convolution2D(3, 6, 5, pad=2)
+            # maxpooling
+            self.conv3  = L.Convolution2D(6, 6, 5, pad=2)
+            self.conv4  = L.Convolution2D(6, 12, 5, pad=2)
+            # maxpooling
+            self.conv5  = L.Convolution2D(12, 12, 4, pad=2)
+            self.conv6  = L.Convolution2D(12, 12, 4, pad=2)
+            self.conv7  = L.Convolution2D(12, 24, 4, pad=2)
+            # maxpooling
+            self.conv8  = L.Convolution2D(24, 24, 3, pad=2)
+            self.conv9  = L.Convolution2D(24, 24, 3, pad=2)
+            self.conv10 = L.Convolution2D(24, 48, 3, pad=2)
+            # maxpooling
+            self.conv11 = L.Convolution2D(48, 48, 2, pad=2)
+            self.conv12 = L.Convolution2D(48, 48, 2, pad=2)
+            self.conv13 = L.Convolution2D(48, 96, 2, pad=2)
+            # maxpooling
+            self.conv14 = L.Convolution2D(96, 96, 2, pad=2)
 
-
-
-    insize = 224
-
-
-
-    def __init__(self):
-
-        super(GoogLeNet, self).__init__(
-
-            conv1=L.Convolution2D(3,  64, 7, stride=2, pad=3),
-
-            conv2_reduce=L.Convolution2D(64,  64, 1),
-
-            conv2=L.Convolution2D(64, 192, 3, stride=1, pad=1),
-
-            inc3a=L.Inception(192,  64,  96, 128, 16,  32,  32),
-
-            inc3b=L.Inception(256, 128, 128, 192, 32,  96,  64),
-
-            inc4a=L.Inception(480, 192,  96, 208, 16,  48,  64),
-
-            inc4b=L.Inception(512, 160, 112, 224, 24,  64,  64),
-
-            inc4c=L.Inception(512, 128, 128, 256, 24,  64,  64),
-
-            inc4d=L.Inception(512, 112, 144, 288, 32,  64,  64),
-
-            inc4e=L.Inception(528, 256, 160, 320, 32, 128, 128),
-
-            inc5a=L.Inception(832, 256, 160, 320, 32, 128, 128),
-
-            inc5b=L.Inception(832, 384, 192, 384, 48, 128, 128),
-
-            loss3_fc=L.Linear(1024, 1000),
-
-
-
-            loss1_conv=L.Convolution2D(512, 128, 1),
-
-            loss1_fc1=L.Linear(2048, 1024),
-
-            loss1_fc2=L.Linear(1024, 1000),
-
-
-
-            loss2_conv=L.Convolution2D(528, 128, 1),
-
-            loss2_fc1=L.Linear(2048, 1024),
-
-            loss2_fc2=L.Linear(1024, 1000)
-
-        )
-
-        self.train = True
-
-
+            self.line1  = L.Linear(11616, 4096)
+            self.line2  = L.Linear(4096, 4096)
+            self.line3  = L.Linear(4096, 10)
 
     def __call__(self, x):
+        h1 = F.relu(self.conv1(x))
+        h2 = F.max_pooling_2d(F.relu(self.conv2(h1)), 2)
 
-        h = F.relu(self.conv1(x))
+        h3 = F.relu(self.conv3(h2))
+        h4 = F.max_pooling_2d(F.relu(self.conv4(h3)), 2)
 
-        h = F.local_response_normalization(
+        h5 = F.relu(self.conv5(h4))
+        h6 = F.relu(self.conv6(h5))
+        h7 = F.max_pooling_2d(F.relu(self.conv7(h6)), 2)
 
-            F.max_pooling_2d(h, 3, stride=2), n=5, k=1, alpha=2e-05)
+        h8 = F.relu(self.conv8(h7))
+        h9 = F.relu(self.conv9(h8))
+        h10 = F.max_pooling_2d(F.relu(self.conv10(h9)), 2)
 
-        h = F.relu(self.conv2_reduce(h))
+        h11 = F.relu(self.conv11(h10))
+        h12 = F.relu(self.conv12(h11))
+        h13 = F.max_pooling_2d(F.relu(self.conv13(h12)), 2)
 
-        h = F.relu(self.conv2(h))
+        h14 = F.relu(self.conv14(h13))
 
-        h = F.max_pooling_2d(
+        h15 = F.relu(self.line1(h14))
+        h16 = F.relu(self.line2(h15))
+        h17 = F.relu(self.line3(h16))
 
-            F.local_response_normalization(h, n=5, k=1, alpha=2e-05), 3, stride=2)
-
-
-
-        h = self.inc3a(h)
-
-        h = self.inc3b(h)
-
-        h = F.max_pooling_2d(h, 3, stride=2)
-
-        h = self.inc4a(h)
-
-
-
-        l = F.average_pooling_2d(h, 5, stride=3)
-
-        l = F.relu(self.loss1_conv(l))
-
-        l = F.relu(self.loss1_fc1(l))
-
-        l = self.loss1_fc2(l)
-
-
-
-        h = self.inc4b(h)
-
-        h = self.inc4c(h)
-
-        h = self.inc4d(h)
-
-
-
-        l = F.average_pooling_2d(h, 5, stride=3)
-
-        l = F.relu(self.loss2_conv(l))
-
-        l = F.relu(self.loss2_fc1(l))
-
-        l = self.loss2_fc2(l)
-
-
-
-        h = self.inc4e(h)
-
-        h = F.max_pooling_2d(h, 3, stride=2)
-
-        h = self.inc5a(h)
-
-        h = self.inc5b(h)
-
-
-
-        h = F.average_pooling_2d(h, 7, stride=1)
-
-        y = self.loss3_fc(F.dropout(h, 0.4, train=self.train))
-
-
-
-        return y
+        return h17
