@@ -51,14 +51,15 @@ def callback(data):
 	print "callback"
 	pub02 = rospy.Publisher('face_recognize', String, queue_size=10)
 	if data.data == '01':
+		print "wait 10 second"
+		rospy.sleep(10)
 		odom = Odometry()
 		while not rospy.is_shutdown():
 			Turn_180()
 			if finish_turn is True:
 				break
-		
+
 		print("Turn 180 degree.")
-		
 		rospy.sleep(2)
 		rospy.loginfo(pub02)
 		pub02.publish("02")
