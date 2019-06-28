@@ -48,7 +48,10 @@ class Face_cut:
 			print "wait 10 munites"
 			rospy.sleep(10)
 
-			image_gray = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2GRAY)
+			while self.color_image is None:
+				print "画像待機"
+
+			image_gray = cv2.cvtColor(self.color_image, cv2.COLOR_RGB2GRAY)
 			cascade = cv2.CascadeClassifier(face_cascade_path)
 			face_rects = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
 			print face_rects
