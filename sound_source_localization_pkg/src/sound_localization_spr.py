@@ -16,47 +16,44 @@ def NowAngular(message):
     angular = math.degrees(2 * math.asin(prinentation_z))
 
 
-def sound_localization(degree):
-    global angular
+def sound_localization(angle):
+    finish_turn = False
     pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+    rospy.sleep(1)
     vel = Twist()
-    vel.linear.x = 0.0
-    if angular < 0:
-        act_degree = angular + 360
-    else:
-        act_degree = angular
-    head_deg = act_degree + degree #Angle to head in Odometry
-    if head_deg > 360:
-        head_deg = head_deg - 360
-    else:
-        pass
-    if head_deg < 180:
-        vel.angular.z = -0.5
-    else:
-        vel.angular.z = 0.5
-    head_p = head_deg + 3.0
-    head_m = head_deg - 3.0
-    while head_p < act_degree and head_m >act_degree:
-        if angular < 0:
-            act_degree = angular + 360
+    vel.linear.x = 0
+    while finish_turn is False:
+        if angular > 0 and angular < angle-3:
+            vel.angular.z = 0.6
+            pub_A2.publish(vel)
+        elif angular <= 0 and angular >= angle -357:
+            vel.angular.z = -0.6
+            pub_A2.publish(vel)
+        elif angular >=angle-3 and angular < angle -0.3:
+            vel.angular.z = 0.3
+            pub_A2.publish(vel)
+        elif angular > angle -360+0.3 and angular < angle -360+0.3:
+            vel.angular.z =-0.3
+            pub_A2.publish(vel)
         else:
-            act_degree = angular
-        pub_A2.publish(vel)
-
+            vel.angular.z= 0
+            pub_A2.publish(vel)
+            finish_turn = True
 
 def get_angle(msg):
     text = ga.get_array(msg)
-    deg = float(text)
-    sound_localization(deg)
-    r = rospy.Rate(150)
-    r.sleep()
-
+    angle = float(text)
+    return angle
 
 if __name__ == '__main__':
     rospy.init_node('sound_localization')
     sub04 = rospy.wait_for_message('sound_localization', String)
     if sub04.data == '04':
         print "get message"
-        get_angle("look here")
+        angle = get_angle("look here")
+        sound_localization(angle)
+        print "Are you talking?"
+        os.system("espeak 'Are you talking?'")
+
     else:
         print "message error"
