@@ -3,6 +3,8 @@
 import rospy
 import cv2
 import os
+
+from sound_system.srv import StringService
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 import male_female_predict as mf
@@ -29,6 +31,16 @@ class Face_cut:
 		self.color_image = None
 		rospy.Subscriber("face_recognize", String, self.callback)
 		rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+
+	def speak(self, sentence):
+		# type: (str) -> None
+		"""
+		speak関数
+		:param sentence:
+		:return:
+		"""
+		rospy.wait_for_service("/sound_system/speak")
+		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
 
 	def image_callback(self, image):
 		# type: (Image)->None
@@ -66,10 +78,11 @@ class Face_cut:
 				[x, y, w, h] = face_rects[i]
 				print face_rects[i]
 				imgCroped = cv2.resize(self.color_image[y:y + h, x:x + w], (96, 96))  ##パラメータ変更要
-				filename = pre_path + ("/img_%02d.jpg" % i)
+				filename = pre_path + ("/img_%02d.png" % i)
 				cv2.imwrite(filename, imgCroped)
 			m_count = mf.main("男女認識")
 			f_count = len(face_rects) - m_count
+			self.speak('There are {0} male and {1} female.'.format(m_count, f_count))
 			self.pub3.publish('03')
 			break
 

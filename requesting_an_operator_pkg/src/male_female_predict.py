@@ -51,6 +51,12 @@ def main(msg):
 	model = M.Alex()
 	model = L.Classifier(model)
 
+	if not os.path.exists(female_path):
+		os.mkdir(female_path)
+
+	if not os.path.exists(male_path):
+		os.mkdir(male_path)
+
 	serializers.load_npz(modelpath, model)
 
 	pathsAndLabels = []
