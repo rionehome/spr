@@ -10,10 +10,12 @@ import socket
 from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
 from nav_msgs.msg import Odometry
+
 dicpath = os.path.dirname(os.path.abspath(__file__))
 pre_path = dicpath.strip("/src")
 model_path = get_model_path()
 text = 'start game'  # if you want to change start sign, change this text.
+
 
 def recognize_sign():
 	while True:
@@ -25,8 +27,8 @@ def recognize_sign():
 			full_utt=False,
 			hmm=os.path.join(model_path, 'en-us'),
 			lm=False,
-			dic="/"+pre_path+"/dictionary/spr_sound.dict",
-			jsgf="/"+pre_path+"/dictionary/spr_sound.gram"
+			dic="/" + pre_path + "/dictionary/spr_sound.dict",
+			jsgf="/" + pre_path + "/dictionary/spr_sound.gram"
 		)
 
 		for phrase in speech:

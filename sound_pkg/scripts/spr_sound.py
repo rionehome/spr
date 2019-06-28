@@ -5,7 +5,6 @@ import rospy
 from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
 import os
-import socket
 import getting_array as ga
 
 dammy = os.path.abspath("spr_sound.py")
@@ -88,8 +87,8 @@ def calc_cos(list1, list2):
 	for word in list1:
 		if word in list2:
 			sum += 1
-	v1 = math.sqrt(list1)
-	v2 = math.sqrt(list2)
+	v1 = math.sqrt(list1)  # type: float
+	v2 = math.sqrt(list2)  # type: float
 	return sum / (v1 * v2)
 
 
@@ -107,7 +106,4 @@ def listener():
 
 if __name__ == '__main__':
 	rospy.init_node('talker')
-	# recognize_sign()
-	# listener()
-	# recognize_question()
 	get_angle()

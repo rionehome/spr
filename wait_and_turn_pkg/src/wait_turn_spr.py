@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
-import time
 from nav_msgs.msg import Odometry
 import rospy
-import sys
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
+
 angular = 0.0
 finish_turn = False
+
 
 def NowAngular(message):
 	global angular
@@ -29,16 +29,16 @@ def Turn_180():
 		if angular > - 5 and angular < 177:
 			vel.angular.z = 0.6
 			pub_A1.publish(vel)
-		elif angular <=-5 and angular>=-177:
-			vel.angular.z=-0.6
+		elif angular <= -5 and angular >= -177:
+			vel.angular.z = -0.6
 			pub_A1.publish(vel)
 		elif angular >= 177 and angular < 179.8:
-		# print "2"
+			# print "2"
 			vel.angular.z = 0.3
 			pub_A1.publish(vel)
 
-		elif angular >-179.8 and angular<-177:
-			vel.angular.z=-0.3
+		elif angular > -179.8 and angular < -177:
+			vel.angular.z = -0.3
 			pub_A1.publish(vel)
 		else:
 			vel.angular.z = 0.0
@@ -63,6 +63,7 @@ def callback(data):
 		rospy.sleep(2)
 		rospy.loginfo(pub02)
 		pub02.publish("02")
+
 
 if __name__ == '__main__':
 	listener()

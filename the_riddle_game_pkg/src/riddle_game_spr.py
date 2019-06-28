@@ -7,12 +7,13 @@ import rospy
 from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
 import os
-import socket
+
 dicpath = os.path.dirname(os.path.abspath(__file__))
-kw_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/rosquestion.list")
-es_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/espeak.list")
-dc_path = dicpath.replace("/the_riddle_game_pkg/src","/the_riddle_game_pkg/dictionary/rosquestion.dict")
+kw_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/rosquestion.list")
+es_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/espeak.list")
+dc_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/rosquestion.dict")
 flag = False
+
 
 def recognize_question():
 	model_path = get_model_path()
@@ -44,11 +45,10 @@ def recognize_question():
 		sp = str(phrase)
 		print(sp)
 		for i in range(0, 6):
-		
+
 			if sp == qw[i]:
 				os.system("espeak '{}'".format(pl[i]))
 				return
-
 
 
 def calc_cos(list1, list2):
@@ -56,15 +56,15 @@ def calc_cos(list1, list2):
 	for word in list1:
 		if word in list2:
 			sum += 1
-	v1 = math.sqrt(list1)
-	v2 = math.sqrt(list2)
+	v1 = math.sqrt(list1)  # type: float
+	v2 = math.sqrt(list2)  # type: float
 	return sum / (v1 * v2)
 
 
 if __name__ == '__main__':
 	rospy.init_node('riddle_game_spr')
 	print "reiddlegame"
-	sub03 = rospy.wait_for_message('detect_face', String)	
+	sub03 = rospy.wait_for_message('detect_face', String)
 	if sub03.data == '03':
 		print "recognize_question()"
 		recognize_question()
