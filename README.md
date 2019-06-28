@@ -1,5 +1,17 @@
 SPR 2019度版
 ====
+# デバグ
+
+start_pkgにあるtest_talker.pyをpython test_talker.pyで実行
+実行すると、トピック名、メッセージを指定できるのでデバグするnodeにトピック、メッセージを送ってください。
+
+対象：sound_source_localization_pkg　sound_localization_spr.py
+
+トピック：sound_localization
+
+指定メッセージ：04
+
+
 
 # branchを切ろう
 

@@ -8,7 +8,9 @@ from nav_msgs.msg import Odometry
 import sys
 import socket
 import getting_array as ga
+import os
 angular=0.0
+finish_turn = False
 
 def NowAngular(message):
     global angular
@@ -17,28 +19,33 @@ def NowAngular(message):
 
 
 def sound_localization(angle):
-    finish_turn = False
+    global finish_turn
     pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
     rospy.sleep(1)
-    vel = Twist()
-    vel.linear.x = 0
     while finish_turn is False:
-        if angular > 0 and angular < angle-3:
-            vel.angular.z = 0.6
-            pub_A2.publish(vel)
-        elif angular <= 0 and angular >= angle -357:
-            vel.angular.z = -0.6
-            pub_A2.publish(vel)
-        elif angular >=angle-3 and angular < angle -0.3:
-            vel.angular.z = 0.3
-            pub_A2.publish(vel)
-        elif angular > angle -360+0.3 and angular < angle -360+0.3:
-            vel.angular.z =-0.3
-            pub_A2.publish(vel)
-        else:
-            vel.angular.z= 0
-            pub_A2.publish(vel)
-            finish_turn = True
+        vel = Twist()
+        vel.linear.x = 0.0
+        if angle >= 0 and angle <= 180:
+            max_ang = angle + 5
+            min_ang = angle - 5
+            if angular <min_ang and angular >max_ang:
+                vel.angular.z =0.6
+                pub_A2.publish(vel)
+            else:
+                vel.angular.z=0.0
+                pub_A2.publish(vel)
+                finish_turn = True
+        elif angle >180.0 and angle <= 359:
+            angle = angle -360.0
+            max_ang = angle -5
+            min_ang = angle +5
+            if angular < min_ang and angular > min_ang:
+                vel.angular.z = 0.6
+                pub_A2.publish(vel)
+            else:
+                vel.angular.z = 0
+                pub_A2.publish(vel)
+                finish_turn = True
 
 def get_angle(msg):
     text = ga.get_array(msg)
