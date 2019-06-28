@@ -67,11 +67,11 @@ def main(msg):
 		print(" Prediction : " + cls_names[y])
 		if (y == 0):
 			f_image = (female_path + "/female_%02d.jpg" % (f_count))
-			plt.imsave(f_image, x.transpose(1, 2, 0));
+			plt.imsave(f_image, x.transpose(1, 2, 0))
 			f_count = f_count + 1
 		else:
 			m_image = (male_path + "/male_%02d.jpg" % (m_count))
-			plt.imsave(m_image, x.transpose(1, 2, 0));
+			plt.imsave(m_image, x.transpose(1, 2, 0))
 			m_count = m_count + 1
 
 	all = str(f_count + m_count) + "people"
@@ -80,11 +80,4 @@ def main(msg):
 	print(str(all))
 	print(str(males))
 	print(str(females))
-
-	# os.system("espeak -v f5 ' " + all + " ' -s 100")
-	# os.system("espeak -v f5 ' " + males + "and" + females + " ' -s 100")
-
-	# os.system('espeak -v f5 "{Who would like to play a riddle game with me?}" -s 100')
-	# os.system('espeak -v f5 "{I will wait 5 seconds until you come here}" -s 100')
-	# sleep(5)
 	return m_count

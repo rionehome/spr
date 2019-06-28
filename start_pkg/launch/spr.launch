@@ -1,11 +1,12 @@
 <launch>
 
 	<include file="$(find sound_system)/launch/speak.launch"/>
+	<!-- <include file="$(find freenect_launch)/launch/freenect.launch"/> -->
 
     <node pkg="requesting_an_operator_pkg" name="req_operator_spr" output="screen" type="request_operator_spr.py"/>
     <node pkg="sound_source_localization_pkg" name="sound_localization" output="screen" type="sound_localization_spr.py"/>
     <node pkg="start_pkg" name="start_spr" output="screen" type="start_spr.py"/>
     <node pkg="the_riddle_game_pkg" name="riddle_game_spr" output="screen" type="riddle_game_spr.py"/>
-    <node pkg="wait_and_turn_pkg" name="wait_turn_spr" output="screen" type="wait_turn_spr.py" output="screen" />
+    <node pkg="wait_and_turn_pkg" name="wait_turn_spr" output="screen" type="wait_turn_spr.py"/>
 
 </launch>
