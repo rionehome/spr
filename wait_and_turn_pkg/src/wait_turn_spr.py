@@ -18,9 +18,6 @@ def NowAngular(message):
 
 def Turn_180():
 	global finish_turn
-	# print "A"
-	print "wait 10 second"
-	rospy.sleep(10)
 	pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
 	# print angular
 	while finish_turn is False:

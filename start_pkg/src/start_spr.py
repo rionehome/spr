@@ -1,20 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from sound_system.srv import StringService
 import time
 
 import rospy
-import sys
-import math
 import os
-import socket
 from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
-from nav_msgs.msg import Odometry
 
 dicpath = os.path.dirname(os.path.abspath(__file__))
 pre_path = dicpath.strip("/src")
 model_path = get_model_path()
 text = 'start game'  # if you want to change start sign, change this text.
+
+
+def speak(sentence):
+	# type: (str) -> None
+	"""
+	発話関数
+	:param sentence:
+	:return:
+	"""
+	rospy.wait_for_service("/sound_system/speak")
+	rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
 
 
 def recognize_sign():
@@ -42,12 +50,16 @@ def recognize_sign():
 
 
 def publish_sign(phrase):
-	os.system('espeak "Hello, everyone, let\'s start game"')
-	r = rospy.Rate(10)
+	speak("Hello, everyone, let\'s start game")
+	# 10秒待機
+	r = rospy.Rate(1)
+	print "wait 10 second"
+	for i in range(10):
+		r.sleep()
+
 	pub01 = rospy.Publisher('Turn_180', String, queue_size=10)
 	time.sleep(1)
 	pub01.publish('01')
-	r.sleep()
 	rospy.loginfo(phrase)
 
 
