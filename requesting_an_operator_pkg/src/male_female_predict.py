@@ -8,7 +8,7 @@ from PIL import Image
 
 import chainer.links as L
 from chainer.datasets import tuple_dataset
-from chainer import Chain, Variable, optimizers, serializers
+from chainer import serializers
 import matplotlib.pyplot as plt
 import glob
 
@@ -66,11 +66,11 @@ def main(msg):
 		y = model.predictor(x[None, ...]).data.argmax(axis=1)[0]
 		print(" Prediction : " + cls_names[y])
 		if (y == 0):
-			f_image = (female_path + "/female_%02d.jpg" % (f_count))
+			f_image = (female_path + "/female_%02d.jpg" % f_count)
 			plt.imsave(f_image, x.transpose(1, 2, 0))
 			f_count = f_count + 1
 		else:
-			m_image = (male_path + "/male_%02d.jpg" % (m_count))
+			m_image = (male_path + "/male_%02d.jpg" % m_count)
 			plt.imsave(m_image, x.transpose(1, 2, 0))
 			m_count = m_count + 1
 

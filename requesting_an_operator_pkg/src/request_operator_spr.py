@@ -45,8 +45,8 @@ class Face_cut:
 
 	def face_count(self):
 		while True:
-			print "wait 10 munites"
-			rospy.sleep(10)
+			# print "wait 10 munites"
+			# rospy.sleep(10)
 
 			while self.color_image is None:
 				print "画像待機"
