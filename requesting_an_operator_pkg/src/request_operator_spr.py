@@ -32,7 +32,6 @@ class Face_cut:
 
 	def image_callback(self, image):
 		# type: (Image)->None
-		print "debug"
 		try:
 			self.color_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
 		except CvBridgeError:
@@ -51,23 +50,23 @@ class Face_cut:
 
 			image_gray = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2GRAY)
 			cascade = cv2.CascadeClassifier(face_cascade_path)
-			facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
-			print facerect
-			if len(facerect) <= 0:
+			face_rects = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
+			print face_rects
+			if len(face_rects) <= 0:
 				print "顔が認識できません"
 				continue
 
-			if os.path.exists(pre_path) == False:
+			if not os.path.exists(pre_path):
 				os.mkdir(pre_path)
 
-			for i in range(len(facerect)):
-				[x, y, w, h] = facerect[i]
-				print facerect[i]
+			for i in range(len(face_rects)):
+				[x, y, w, h] = face_rects[i]
+				print face_rects[i]
 				imgCroped = cv2.resize(self.color_image[y:y + h, x:x + w], (96, 96))  ##パラメータ変更要
 				filename = pre_path + ("/img_%02d.jpg" % i)
 				cv2.imwrite(filename, imgCroped)
 			m_count = mf.main("男女認識")
-			f_count = len(facerect) - m_count
+			f_count = len(face_rects) - m_count
 			self.pub3.publish('03')
 			break
 
