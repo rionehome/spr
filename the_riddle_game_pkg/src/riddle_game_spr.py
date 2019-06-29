@@ -42,14 +42,10 @@ class RiddleGameSPR:
 		:param path:
 		:return:
 		"""
+		return_dict = {}
 		with open(path, "r") as f:
-			read_dict = csv.DictReader(f, delimiter=";", quotechar='"')
-			ks = read_dict.fieldnames
-			return_dict = {k: [] for k in ks}
-
-			for row in read_dict:
-				for k, v in row.items():
-					return_dict[k].append(v)  # notice the type of the value is always string.
+			for line in csv.reader(f):
+				return_dict.setdefault(str(line[0]), str(line[1]))
 
 		return return_dict
 
