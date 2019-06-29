@@ -15,7 +15,6 @@ class SoundLocalizationSPR:
 		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
 		rospy.Subscriber("/sound_direction", Int32, self.respeaker_callback)
 		rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
-		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
 		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
 		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
 		self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
@@ -31,7 +30,7 @@ class SoundLocalizationSPR:
 	def activate_callback(self, msg):
 		# type:(Activate)->None
 		if msg.id == self.id:
-			for i in range(5):
+			while True:
 				text = self.resume_text("spr_sample_sphinx")
 				answer = self.a_q_dict[text]
 				print answer
@@ -40,8 +39,6 @@ class SoundLocalizationSPR:
 				while self.move_flag:
 					pass
 				self.speak(answer)
-
-			self.activate_pub.publish(Activate(id=self.id + 1))
 
 	def amount_signal_callback(self, data):
 		# type:(Int32)->None
