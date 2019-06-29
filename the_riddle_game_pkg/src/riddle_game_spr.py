@@ -24,7 +24,8 @@ class RiddleGameSPR:
 		print self.a_q_dict
 
 	def activate_callback(self, msg):
-		if msg.data == self.id:
+		# type:(Activate)->None
+		if msg.id == self.id:
 			for i in range(5):
 				text = self.resume_text("spr_sample_sphinx")
 				answer = self.a_q_dict[text]
