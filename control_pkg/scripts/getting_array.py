@@ -63,4 +63,4 @@ def direction():
 
 
 if __name__ =="__main__":
-    get_array("how about you")
+	get_array("how about you")
