@@ -1,7 +1,7 @@
 <launch>
 
 	<include file="$(find sound_system)/launch/speak.launch"/>
-	<!-- <include file="$(find freenect_launch)/launch/freenect.launch"/> -->
+	<include file="$(find freenect_launch)/launch/freenect.launch"/>
 
     <node pkg="requesting_an_operator_pkg" name="req_operator_spr" output="screen" type="request_operator_spr.py"/>
     <node pkg="sound_source_localization_pkg" name="sound_localization" output="screen" type="sound_localization_spr.py"/>
