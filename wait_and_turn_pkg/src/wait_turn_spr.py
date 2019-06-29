@@ -24,10 +24,15 @@ class TurnSPR:
 	def activate_callback(self, msg):
 		# type: (Activate)->None
 		if msg.id == self.id:
+			# 180度回転
 			self.turn_180()
 			self.pub02.publish("02")
 
 	def turn_180(self):
+		"""
+		180度回転
+		:return:
+		"""
 		finish_turn = False
 		while not finish_turn:
 			print self.angular
@@ -53,6 +58,11 @@ class TurnSPR:
 				finish_turn = True
 
 	def now_angular(self, message):
+		"""
+		オドメトリ取得
+		:param message:
+		:return:
+		"""
 		prinentation_z = message.pose.pose.orientation.z
 		self.angular = math.degrees(2 * math.asin(prinentation_z))
 
