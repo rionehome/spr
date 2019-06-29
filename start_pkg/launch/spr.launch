@@ -1,6 +1,10 @@
 <launch>
 
+	<node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+
 	<include file="$(find sound_system)/launch/speak.launch"/>
+	<include file="$(find sound_system)/launch/sphinx.launch"/>
+	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
 	<include file="$(find freenect_launch)/launch/freenect.launch"/>
 
     <node pkg="requesting_an_operator_pkg" name="req_operator_spr" output="screen" type="request_operator_spr.py"/>
