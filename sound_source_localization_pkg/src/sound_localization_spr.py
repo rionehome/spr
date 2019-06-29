@@ -32,6 +32,9 @@ class SoundLocalizationSPR:
 		if msg.id == self.id:
 			while True:
 				text = self.resume_text("spr_sample_sphinx")
+				print text
+				if text not in self.a_q_dict:
+					continue
 				answer = self.a_q_dict[text]
 				print answer
 				self.turn_sound_source()  # 回転
@@ -112,7 +115,6 @@ class SoundLocalizationSPR:
 	def turn_sound_source(self):
 		"""
 		音源定位した後の移動
-		:param data:
 		:return:
 		"""
 		# 回転メッセージを投げる
