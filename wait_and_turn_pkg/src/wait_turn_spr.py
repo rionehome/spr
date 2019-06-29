@@ -1,68 +1,72 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
-import time
 from nav_msgs.msg import Odometry
 import rospy
-import sys
+from start_pkg.msg import Activate
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-angular = 0.0
-finish_turn = False
-
-def NowAngular(message):
-	global angular
-	prinentation_z = message.pose.pose.orientation.z
-	angular = math.degrees(2 * math.asin(prinentation_z))
 
 
-def Turn_180():
-	global finish_turn
-	# print "A"
-	pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
-	# print angular
-	vel = Twist()
-	vel.linear.x = 0.0
-	if angular > - 179.5 and angular < 177:
-		# print "1"
-		vel.angular.z = 0.6
-		pub_A1.publish(vel)
-	# print "1."
-	elif angular >= 177 and angular < 179.8:
-		# print "2"
-		vel.angular.z = 0.3
-		pub_A1.publish(vel)
-	# print "2."
-	else:
-		vel.angular.z = 0.0
-		pub_A1.publish(vel)
-		finish_turn = True
+class TurnSPR:
+	def __init__(self, activate_id):
+		rospy.init_node('turn_spr')
 
+		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
+		rospy.Subscriber('/odom', Odometry, self.now_angular)
 
-def listener():
-	print "listener"
-	rospy.init_node('wait_turn_spr')
-	rospy.Subscriber('Turn_180', String, callback)
-	rospy.Subscriber('/odom', Odometry, NowAngular)
-	rospy.spin()
+		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
+		self.pub02 = rospy.Publisher('face_recognize', String, queue_size=10)
+		self.velocity_pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
+		self.angular = 0.0
+		self.id = activate_id
 
+	def activate_callback(self, msg):
+		# type: (Activate)->None
+		if msg.id == self.id:
+			# 180度回転
+			self.turn_180()
+			self.activate_pub.publish(Activate(id=self.id + 1))
 
-def callback(data):
-	print "callback"
-	pub02 = rospy.Publisher('face_recognize', String, queue_size=10)
-	if data.data == '01':
-		print "wait 10 second"
-		rospy.sleep(10)
-		odom = Odometry()
-		while not rospy.is_shutdown():
-			Turn_180()
-			if finish_turn is True:
-				break
+	def turn_180(self):
+		"""
+		180度回転
+		:return:
+		"""
+		finish_turn = False
+		while not finish_turn:
+			print self.angular
+			vel = Twist()
+			vel.linear.x = 0.0
+			if - 5 < self.angular < 177:
+				vel.angular.z = 0.6
+				self.velocity_pub.publish(vel)
+			elif -5 >= self.angular >= -177:
+				vel.angular.z = -0.6
+				self.velocity_pub.publish(vel)
+			elif 177 <= self.angular < 179.8:
+				# print "2"
+				vel.angular.z = 0.3
+				self.velocity_pub.publish(vel)
 
-		print("Turn 180 degree.")
-		rospy.sleep(2)
-		rospy.loginfo(pub02)
-		pub02.publish("02")
+			elif -179.8 < self.angular < -177:
+				vel.angular.z = -0.3
+				self.velocity_pub.publish(vel)
+			else:
+				vel.angular.z = 0.0
+				self.velocity_pub.publish(vel)
+				finish_turn = True
+
+	def now_angular(self, message):
+		"""
+		オドメトリ取得
+		:param message:
+		:return:
+		"""
+		prinentation_z = message.pose.pose.orientation.z
+		self.angular = math.degrees(2 * math.asin(prinentation_z))
+
 
 if __name__ == '__main__':
-	listener()
+	TurnSPR(1)
+	rospy.spin()

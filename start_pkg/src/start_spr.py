@@ -1,56 +1,73 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import time
+from sound_system.srv import StringService
+from start_pkg.msg import Activate
 
 import rospy
-import sys
-import math
-import os
-import socket
 from std_msgs.msg import String
-from pocketsphinx import LiveSpeech, get_model_path
-from nav_msgs.msg import Odometry
-dicpath = os.path.dirname(os.path.abspath(__file__))
-pre_path = dicpath.strip("/src")
-model_path = get_model_path()
-text = 'start game'  # if you want to change start sign, change this text.
 
-def recognize_sign():
-	while True:
-		speech = LiveSpeech(
-			verbose=False,
-			sampling_rate=16000,
-			buffer_size=2048,
-			no_search=False,
-			full_utt=False,
-			hmm=os.path.join(model_path, 'en-us'),
-			lm=False,
-			dic="/"+pre_path+"/dictionary/spr_sound.dict",
-			jsgf="/"+pre_path+"/dictionary/spr_sound.gram"
-		)
 
-		for phrase in speech:
-			wording = str(phrase)
-			if wording == text:
+class StartSPR:
+	def __init__(self, activate_id):
+		rospy.init_node('start_spr')
+
+		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
+
+		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
+		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
+		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
+
+		self.id = activate_id
+
+		print "start"
+
+	@staticmethod
+	def speak(sentence):
+		# type: (str) -> None
+		"""
+		発話関数
+		:param sentence:
+		:return:
+		"""
+		rospy.wait_for_service("/sound_system/speak")
+		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
+
+	def resume_text(self, dict_name):
+		# type: (str)->str
+		"""
+		音声認識
+		:return:
+		"""
+		self.change_dict_pub.publish(dict_name + ".dict")
+		self.change_gram_pub.publish(dict_name + ".gram")
+		rospy.wait_for_service("/sound_system/recognition")
+		response = rospy.ServiceProxy("/sound_system/recognition", StringService)()
+		return response.response
+
+	def activate_callback(self, msg):
+		# type: (Activate)->None
+		if msg.id == self.id:
+			self.start()
+
+	def start(self):
+
+		# "start game"認識
+		while True:
+			text = self.resume_text("spr_sound")
+			if text == "start game":
 				break
-		else:
-			continue
-		break
-	publish_sign(text)
 
+		self.speak("Hello, everyone, let\'s start game")
 
-def publish_sign(phrase):
-	os.system('espeak "Hello, everyone, let\'s start game"')
-	r = rospy.Rate(10)
-	pub01 = rospy.Publisher('Turn_180', String, queue_size=10)
-	time.sleep(1)
-	pub01.publish('01')
-	r.sleep()
-	rospy.loginfo(phrase)
+		# 10秒待機
+		r = rospy.Rate(1)
+		print "wait 10 second"
+		for i in range(10):
+			print i + 1
+			r.sleep()
+		self.activate_pub.publish(Activate(id=self.id + 1))
 
 
 if __name__ == '__main__':
-	rospy.init_node('start_spr')
-	print "start"
-	recognize_sign()
+	StartSPR(0)
 	rospy.spin()

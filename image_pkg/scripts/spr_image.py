@@ -4,7 +4,6 @@ import sys
 sys.path.remove('/opt/ros/melodic/lib/python2.7/dist-packages')
 from std_msgs.msg import String
 import cv2
-import numpy as np
 import os
 
 dammy = os.path.abspath('spr_image.py')
@@ -24,6 +23,7 @@ def callback(data):
 
 def facecount():
 	# pub = rospy.Publisher('srtcont',String,queue_size=10)
+	global face_list
 	cap = cv2.VideoCapture(0)
 	end_flag, c_frame = cap.read()
 	height, width, channels = c_frame.shape
@@ -52,7 +52,6 @@ def facecount():
 		end_flag, c_frame = cap.read()
 
 	print("number of face{}".format(len(face_list)))
-	# pub.publish(len(face_list))
 	cap.release()
 	cv2.destroyAllWindows()
 	cv2.waitKey(0)
