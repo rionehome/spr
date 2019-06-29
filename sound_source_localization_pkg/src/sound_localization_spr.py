@@ -1,70 +1,131 @@
 #!/usr/bin/env python
+# ! -*- coding:utf8 -*-
+import csv
 
 import rospy
-import math
-from geometry_msgs.msg import Twist
-from std_msgs.msg import String
-from nav_msgs.msg import Odometry
-import sys
-import socket
-import getting_array as ga
+from sound_system.srv import StringService
+from start_pkg.msg import Activate
+from std_msgs.msg import String, Int32, Float64MultiArray
 import os
 
-angular = 0.0
-finish_turn = False
 
+class SoundLocalizationSPR:
+	def __init__(self, activate_id):
+		rospy.init_node('sound_localization_spr')
+		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
+		rospy.Subscriber("/sound_direction", Int32, self.respeaker_callback)
+		rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
+		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
+		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
+		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
+		self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
+		self.dic_path = os.path.dirname(os.path.abspath(__file__))
+		self.q_a_path = self.dic_path.replace("/the_riddle_game_pkg/src", "/q&a/q&a.csv")
+		self.a_q_dict = self.read_q_a(self.q_a_path)
+		self.id = activate_id
+		self.angle_list = []
+		self.move_flag = False
 
-def NowAngular(message):
-	global angular
-	prinentation_z = message.pose.pose.orientation.z
-	angular = math.degrees(2 * math.asin(prinentation_z))
+		print self.a_q_dict
 
+	def activate_callback(self, msg):
+		# type:(Activate)->None
+		if msg.id == self.id:
+			for i in range(5):
+				text = self.resume_text("spr_sample_sphinx")
+				answer = self.a_q_dict[text]
+				print answer
+				self.turn_sound_source()  # 回転
+				self.move_flag = True
+				while self.move_flag:
+					pass
+				self.speak(answer)
 
-def sound_localization(angle):
-	global finish_turn
-	pub_A2 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
-	rospy.sleep(1)
-	while finish_turn is False:
-		vel = Twist()
-		vel.linear.x = 0.0
-		if angle >= 0 and angle <= 180:
-			max_ang = angle + 5
-			min_ang = angle - 5
-			if angular < min_ang and angular > max_ang:
-				vel.angular.z = 0.6
-				pub_A2.publish(vel)
-			else:
-				vel.angular.z = 0.0
-				pub_A2.publish(vel)
-				finish_turn = True
-		elif angle > 180.0 and angle <= 359:
-			angle = angle - 360.0
-			max_ang = angle - 5
-			min_ang = angle + 5
-			if angular < min_ang and angular > min_ang:
-				vel.angular.z = 0.6
-				pub_A2.publish(vel)
-			else:
-				vel.angular.z = 0
-				pub_A2.publish(vel)
-				finish_turn = True
+			self.activate_pub.publish(Activate(id=self.id + 1))
 
+	def amount_signal_callback(self, data):
+		# type:(Int32)->None
+		if data.data == 1:
+			return
+		self.move_flag = False
 
-def get_angle(msg):
-	text = ga.get_array(msg)
-	angle = float(text)
-	return angle
+	def respeaker_callback(self, data):
+		# type:(Int32)->None
+		"""
+		angle_listにスタック
+		:param data:
+		:return:
+		"""
+		angle = data.data
+		if len(self.angle_list) > 10:
+			self.angle_list.pop(0)
+		self.angle_list.append(angle)
+
+	@staticmethod
+	def read_q_a(path):
+		# type: (str)->dict
+		"""
+		q&aのcsvを辞書型リストに取り込む
+		:param path:
+		:return:
+		"""
+		return_dict = {}
+		with open(path, "r") as f:
+			for line in csv.reader(f):
+				return_dict.setdefault(str(line[0]), str(line[1]))
+
+		return return_dict
+
+	@staticmethod
+	def speak(sentence):
+		# type: (str) -> None
+		"""
+		speak関数
+		:param sentence:
+		:return:
+		"""
+		rospy.wait_for_service("/sound_system/speak")
+		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
+
+	def resume_text(self, dict_name):
+		# type: (str)->str
+		"""
+		音声認識
+		:return:
+		"""
+		self.change_dict_pub.publish(dict_name + ".dict")
+		self.change_gram_pub.publish(dict_name + ".gram")
+		rospy.wait_for_service("/sound_system/recognition")
+		response = rospy.ServiceProxy("/sound_system/recognition", StringService)()
+		return response.response
+
+	def pub_move_angle(self, angle):
+		"""
+		角度のみ送信
+		:param angle:
+		:return:
+		"""
+		array = Float64MultiArray()
+		array.data.append(0)
+		array.data.append(0)
+		array.data.append(angle)
+		array.data.append(1)
+		self.move_amount_pub.publish(array)
+
+	def turn_sound_source(self):
+		"""
+		音源定位した後の移動
+		:param data:
+		:return:
+		"""
+		# 回転メッセージを投げる
+		angle = self.angle_list[3]  # 時間を遡る
+		if angle - 180 > 0:
+			angle = -(360 - angle)
+		self.pub_move_angle(angle)
+		self.move_flag = True
 
 
 if __name__ == '__main__':
-	rospy.init_node('sound_localization')
-	sub04 = rospy.wait_for_message('sound_localization', String)
-	if sub04.data == '04':
-		print "get message"
-		angle = get_angle("look here")
-		sound_localization(angle)
-		print "Are you talking?"
-		os.system("espeak 'Are you talking?'")
-
-	else:
-		print "message error"
+	SoundLocalizationSPR(4)
+	rospy.spin()

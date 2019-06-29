@@ -1,131 +1,149 @@
 #!/usr/bin/env python
 # ! -*- coding:utf8 -*-
-import csv
-
+import math
 import rospy
-from sound_system.srv import StringService
-from start_pkg.msg import Activate
-from std_msgs.msg import String, Int32, Float64MultiArray
+from std_msgs.msg import String
+from pocketsphinx import LiveSpeech, get_model_path
 import os
+import getting_array as ga
+
+#dammy = os.path.abspath("spr_sound.py")
+#pre = dammy.strip("/scripts/spr_sound.py")
+#kw_path = '/' + pre + '/dictionary/rosquestion.list'
+#es_path = '/' + pre + '/dictionary/espeak.list'
+#dc_path = '/' + pre + '/dictionary/rosquestion.dict'
+
+#text = 'start game'  # if you want to change start sign, change this text.
 
 
-class SoundLocalizationSPR:
-	def __init__(self, activate_id):
-		rospy.init_node('sound_localization_spr')
-		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
-		rospy.Subscriber("/sound_direction", Int32, self.respeaker_callback)
-		rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
-		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
-		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
-		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
-		self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
-		self.dic_path = os.path.dirname(os.path.abspath(__file__))
-		self.q_a_path = self.dic_path.replace("/the_riddle_game_pkg/src", "/q&a/q&a.csv")
-		self.a_q_dict = self.read_q_a(self.q_a_path)
-		self.id = activate_id
-		self.angle_list = []
-		self.move_flag = False
 
-		print self.a_q_dict
+def recognize_sign():
+	while True:
+		speech = LiveSpeech(lm=False, keyphrase='start game', kws_threshold=1e-20)  # set pocketsphinx's module
+		for phrase in speech:
+			sp = str(phrase)
+			if sp == text:
+				break
+		else:
+			continue
+		break
 
-	def activate_callback(self, msg):
-		# type:(Activate)->None
-		if msg.id == self.id:
-			for i in range(5):
-				text = self.resume_text("spr_sample_sphinx")
-				answer = self.a_q_dict[text]
-				print answer
-				self.turn_sound_source()  # 回転
-				self.move_flag = True
-				while self.move_flag:
-					pass
-				self.speak(answer)
+	publish_sign(text)
 
-			self.activate_pub.publish(Activate(id=self.id + 1))
 
-	def amount_signal_callback(self, data):
-		# type:(Int32)->None
-		if data.data == 1:
-			return
-		self.move_flag = False
+def publish_sign(phrase):
+	os.system("espeak 'Hello, everyone, let start game'")  # Speech sign
 
-	def respeaker_callback(self, data):
-		# type:(Int32)->None
-		"""
-		angle_listにスタック
-		:param data:
-		:return:
-		"""
-		angle = data.data
-		if len(self.angle_list) > 10:
-			self.angle_list.pop(0)
-		self.angle_list.append(angle)
+	pub = rospy.Publisher('srtcont', String, queue_size=10)  # node  is srtcont which communicates with control systems.
+	pub.publish('001')
+	rospy.loginfo(phrase)
 
-	@staticmethod
-	def read_q_a(path):
-		# type: (str)->dict
-		"""
-		q&aのcsvを辞書型リストに取り込む
-		:param path:
-		:return:
-		"""
-		return_dict = {}
-		with open(path, "r") as f:
-			for line in csv.reader(f):
-				return_dict.setdefault(str(line[0]), str(line[1]))
 
-		return return_dict
+def recognize_question():
+	#model_path = get_model_path()
+	"""
+	speech = LiveSpeech(
+		verbose=False,
+		sampling_rate=16000,
+		buffer_size=2048,
+		no_search=False,
+		full_utt=False,
+		lm=False,
+		kws_threshold=1e-20,
+		kws=kw_path,
+		hmm=os.path.join(model_path, 'en-us'),
+		dic=os.path.join(model_path, dc_path)
+	)
+	"""
+	model_path = '/usr/local/lib/python2.7/dist-packages/pocketsphinx/model'
+	dic_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dictionary')
+	speech = LiveSpeech(
+		verbose=False,
+		sampling_rate=16000,
+		buffer_size=2048,
+		no_search=False,
+		full_utt=False,
+		hmm=os.path.join(model_path, 'en-us'),
+		lm=False,
+		dic=os.path.join(dic_path, 'spr_sample_sphinx.dict'),
+		jsgf=os.path.join(dic_path, "spr_sample_sphinx.gram")
+	)
 
-	@staticmethod
-	def speak(sentence):
-		# type: (str) -> None
-		"""
-		speak関数
-		:param sentence:
-		:return:
-		"""
-		rospy.wait_for_service("/sound_system/speak")
-		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
+	""""
+	# read question_keyword file
+	with open(kw_path) as f:
+		qw = [s.strip() for s in f.readlines()]
+	print qw
 
-	def resume_text(self, dict_name):
-		# type: (str)->str
-		"""
-		音声認識
-		:return:
-		"""
-		self.change_dict_pub.publish(dict_name + ".dict")
-		self.change_gram_pub.publish(dict_name + ".gram")
-		rospy.wait_for_service("/sound_system/recognition")
-		response = rospy.ServiceProxy("/sound_system/recognition", StringService)()
-		return response.response
+	# read Speech phrase list file
+	with open(es_path, 'r') as fi:
+		pl = [ki.strip() for ki in fi.readlines()]
+		pl.pop()
+	print pl
+	"""
+	csv_file = os.path.join(dic_path, "question_sample.csv")
+	qa_dic = {}
+	with open(csv_file) as f:
+		for line in f:
+			line = line.rstrip("\n")
+			qa_list = line.split(";")
+			qa_dic[qa_list[0]] = qa_list[1] # 辞書のキーに問題、値に答えを格納
 
-	def pub_move_angle(self, angle):
-		"""
-		角度のみ送信
-		:param angle:
-		:return:
-		"""
-		array = Float64MultiArray()
-		array.data.append(0)
-		array.data.append(0)
-		array.data.append(angle)
-		array.data.append(1)
-		self.move_amount_pub.publish(array)
+	for phrase in speech:
+		sp = str(phrase)
+		print(sp)
+		if sp in qa_dic:
+			os.system("espeak '{}'".format(qa_dic[sp]))
 
-	def turn_sound_source(self):
-		"""
-		音源定位した後の移動
-		:param data:
-		:return:
-		"""
-		# 回転メッセージを投げる
-		angle = self.angle_list[3]  # 時間を遡る
-		if angle - 180 > 0:
-			angle = -(360 - angle)
-		self.pub_move_angle(angle)
-		self.move_flag = True
+	"""
+		for i in range(0, 6):
+			if sp == qw[i]:
+				os.system("espeak '{}'".format(pl[i]))
+	"""
+
+signal = False
+
+def callback(data):
+	global signal
+	if data.data == "003":
+		os.system("espeak 'detect faces'")
+		get_angle()
+	if data.data == "005":
+		#recognize_question()
+		signal = True
+	rospy.signal_shutdown("recognize_question")
+
+def sphinx_wait():
+	global signal
+	while 1:
+		if signal == True:
+			recognize_question()
+			break
+
+
+def calc_cos(list1, list2):
+	sum = 0
+	for word in list1:
+		if word in list2:
+			sum += 1
+	v1 = math.sqrt(list1)  # type: float
+	v2 = math.sqrt(list2)  # type: float
+	return sum / (v1 * v2)
+
+
+def get_angle():
+	text = ga.get_array()
+	print text
+
+
+def listener():
+	rospy.Subscriber("/srtqeus", String, callback)
+	rospy.Subscriber("/srtga", String, callback)
+	sphinx_wait()
+	rospy.spin()
 
 
 if __name__ == '__main__':
-	SoundLocalizationSPR(4)
-	rospy.spin()
+	rospy.init_node('talker')
+	listener()
+	#get_angle()
