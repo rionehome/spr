@@ -63,8 +63,9 @@ class StartSPR:
 		# 10秒待機
 		r = rospy.Rate(1)
 		print "wait 10 second"
-		for i in range(10):
-			print i + 1
+		for i in range(10, 0):
+			print i
+			self.speak(str(i))
 			r.sleep()
 
 		self.turn_180_pub.publish("01")
