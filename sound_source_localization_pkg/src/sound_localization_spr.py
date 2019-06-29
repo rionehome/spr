@@ -20,7 +20,7 @@ class SoundLocalizationSPR:
 		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
 		self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
 		self.dic_path = os.path.dirname(os.path.abspath(__file__))
-		self.q_a_path = self.dic_path.replace("/the_riddle_game_pkg/src", "/q&a/q&a.csv")
+		self.q_a_path = self.dic_path.replace("/sound_source_localization_pkg/src", "/q&a/q&a.csv")
 		self.a_q_dict = self.read_q_a(self.q_a_path)
 		self.id = activate_id
 		self.angle_list = []
