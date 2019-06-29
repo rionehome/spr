@@ -13,7 +13,6 @@ class StartSPR:
 
 		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
 
-		self.turn_180_pub = rospy.Publisher('Turn_180', String, queue_size=10)
 		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
 		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
 		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
@@ -66,8 +65,9 @@ class StartSPR:
 		for i in range(10):
 			print i + 1
 			r.sleep()
-
-		self.turn_180_pub.publish("01")
+		activate = Activate()
+		activate.id = 1
+		self.activate_pub.publish(activate)
 
 
 if __name__ == '__main__':
