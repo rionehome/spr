@@ -2,13 +2,13 @@
 import rospy
 import math
 import sys
-
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 import getting_array as ga
 
 # define initial angular
+
 angular = 0.0
 orient_z = 0.0
 
@@ -22,6 +22,7 @@ def Angular(messege):
 
 # Rotate 180 degrees
 def Act_1():
+
 	global angular
 	pub_A1 = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
 	vel = Twist()
@@ -47,6 +48,7 @@ def callback(data):
 		odom = Odometry()
 		while not rospy.is_shutdown():
 			Act_1()
+
 
 
 # Sound source localization

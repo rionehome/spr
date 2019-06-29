@@ -7,11 +7,13 @@ import struct
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
 
+
 PARAMETERS = {
 	'DOAANGLE': (21, 0, 'int', 359, 0, 'ro', 'DOA angle. Current value. Orientation depends on build configuration.'),
 	'SPEECHDETECTED': (19, 22, 'int', 1, 0, 'ro', 'Speech detection status.', '0 = false (no speech detected)',
 					   '1 = true (speech detected)')
 }
+
 
 TIMEOUT = 100000
 
@@ -61,6 +63,7 @@ def read(name):
 
 def direction():
 	return read('DOAANGLE')
+
 
 
 if __name__ == "__main__":

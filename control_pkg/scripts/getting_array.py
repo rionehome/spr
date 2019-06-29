@@ -61,5 +61,6 @@ def read(name):
 def direction():
     return read('DOAANGLE')
 
+
 if __name__ =="__main__":
 	get_array("how about you")

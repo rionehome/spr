@@ -5,6 +5,7 @@ import rospy
 from std_msgs.msg import String
 from pocketsphinx import LiveSpeech, get_model_path
 import os
+
 import getting_array as ga
 
 #dammy = os.path.abspath("spr_sound.py")
@@ -14,6 +15,7 @@ import getting_array as ga
 #dc_path = '/' + pre + '/dictionary/rosquestion.dict'
 
 #text = 'start game'  # if you want to change start sign, change this text.
+
 
 
 
@@ -37,6 +39,7 @@ def publish_sign(phrase):
 	pub = rospy.Publisher('srtcont', String, queue_size=10)  # node  is srtcont which communicates with control systems.
 	pub.publish('001')
 	rospy.loginfo(phrase)
+
 
 
 def recognize_question():
@@ -104,6 +107,7 @@ def recognize_question():
 signal = False
 
 def callback(data):
+
 	global signal
 	if data.data == "003":
 		os.system("espeak 'detect faces'")
