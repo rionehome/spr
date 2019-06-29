@@ -65,9 +65,7 @@ class StartSPR:
 		for i in range(10):
 			print i + 1
 			r.sleep()
-		activate = Activate()
-		activate.id = 1
-		self.activate_pub.publish(activate)
+		self.activate_pub.publish(Activate(id=self.id + 1))
 
 
 if __name__ == '__main__':

@@ -26,7 +26,7 @@ class TurnSPR:
 		if msg.id == self.id:
 			# 180度回転
 			self.turn_180()
-			self.pub02.publish("02")
+			self.activate_pub.publish(Activate(id=self.id + 1))
 
 	def turn_180(self):
 		"""

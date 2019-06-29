@@ -1,73 +1,81 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import math
+import csv
 import rospy
+from sound_system.srv import StringService
+from start_pkg.msg import Activate
 from std_msgs.msg import String
-from pocketsphinx import LiveSpeech, get_model_path
 import os
 
-dicpath = os.path.dirname(os.path.abspath(__file__))
-kw_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/rosquestion.list")
-es_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/espeak.list")
-dc_path = dicpath.replace("/the_riddle_game_pkg/src", "/the_riddle_game_pkg/dictionary/rosquestion.dict")
-flag = False
 
+class RiddleGameSPR:
+	def __init__(self, activate_id):
+		rospy.init_node('riddle_game_spr')
+		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
 
-def recognize_question():
-	model_path = get_model_path()
-	speech = LiveSpeech(
-		verbose=False,
-		sampling_rate=16000,
-		buffer_size=2048,
-		no_search=False,
-		full_utt=False,
-		lm=False,
-		kws_threshold=1e-20,
-		kws=kw_path,
-		hmm=os.path.join(model_path, 'en-us'),
-		dic=os.path.join(model_path, dc_path)
-	)
+		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
+		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
+		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
+		self.dic_path = os.path.dirname(os.path.abspath(__file__))
+		self.q_a_path = self.dic_path.replace("/the_riddle_game_pkg/src", "/q&a/q&a.csv")
+		self.a_q_dict = self.read_q_a(self.q_a_path)
+		self.id = activate_id
 
-	# read Question_keyword file
-	with open(kw_path) as f:
-		qw = [s.strip() for s in f.readlines()]
-	print qw
+		print self.a_q_dict
 
-	# read Speech phrase list file
-	with open(es_path) as fi:
-		pl = [ki.strip() for ki in fi.readlines()]
-		pl.pop()
-	print pl
+	def activate_callback(self, msg):
+		if msg.data == self.id:
+			for i in range(5):
+				text = self.resume_text("spr_sample_sphinx")
+				answer = self.a_q_dict[text]
+				print answer
+				self.speak(answer)
 
-	for phrase in speech:
-		sp = str(phrase)
-		print(sp)
-		for i in range(0, 6):
+			self.activate_pub.publish(Activate(id=self.id + 1))
 
-			if sp == qw[i]:
-				os.system("espeak '{}'".format(pl[i]))
-				return
+	@staticmethod
+	def read_q_a(path):
+		# type: (str)->dict
+		"""
+		q&aのcsvを辞書型リストに取り込む
+		:param path:
+		:return:
+		"""
+		with open(path, "r") as f:
+			read_dict = csv.DictReader(f, delimiter=";", quotechar='"')
+			ks = read_dict.fieldnames
+			return_dict = {k: [] for k in ks}
 
+			for row in read_dict:
+				for k, v in row.items():
+					return_dict[k].append(v)  # notice the type of the value is always string.
 
-def calc_cos(list1, list2):
-	sum = 0
-	for word in list1:
-		if word in list2:
-			sum += 1
-	v1 = math.sqrt(list1)  # type: float
-	v2 = math.sqrt(list2)  # type: float
-	return sum / (v1 * v2)
+		return return_dict
+
+	@staticmethod
+	def speak(sentence):
+		# type: (str) -> None
+		"""
+		speak関数
+		:param sentence:
+		:return:
+		"""
+		rospy.wait_for_service("/sound_system/speak")
+		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
+
+	def resume_text(self, dict_name):
+		# type: (str)->str
+		"""
+		音声認識
+		:return:
+		"""
+		self.change_dict_pub.publish(dict_name + ".dict")
+		self.change_gram_pub.publish(dict_name + ".gram")
+		rospy.wait_for_service("/sound_system/recognition")
+		response = rospy.ServiceProxy("/sound_system/recognition", StringService)()
+		return response.response
 
 
 if __name__ == '__main__':
-	rospy.init_node('riddle_game_spr')
-	print "reiddlegame"
-	sub03 = rospy.wait_for_message('detect_face', String)
-	if sub03.data == '03':
-		print "recognize_question()"
-		recognize_question()
-		pub04 = rospy.Publisher('sound_localization', String, queue_size=10)
-		rospy.sleep(2)
-		rospy.loginfo("publish")
-		pub04.publish('04')
+	RiddleGameSPR(3)
 	rospy.spin()

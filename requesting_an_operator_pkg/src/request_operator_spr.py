@@ -3,9 +3,9 @@
 import rospy
 import cv2
 import os
-
+import shutil
 from sound_system.srv import StringService
-from std_msgs.msg import String
+from start_pkg.msg import Activate
 from sensor_msgs.msg import Image
 import male_female_predict as mf
 from cv_bridge import CvBridge, CvBridgeError
@@ -23,16 +23,20 @@ ORG_WINDOW_NAME = "cap"
 GAUSSIAN_WINDOW_NAME = "cap_gray"
 
 
-class Face_cut:
-	def __init__(self):
+class FaceCut:
+	def __init__(self, activate_id):
 		rospy.init_node('req_operator_spr')
-		self.pub3 = rospy.Publisher("detect_face", String, queue_size=10, latch=True)
+
+		rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
+
+		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
+		self.id = activate_id
 		self.bridge = CvBridge()
 		self.color_image = None
-		rospy.Subscriber("face_recognize", String, self.callback)
-		rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
 
-	def speak(self, sentence):
+	@staticmethod
+	def speak(sentence):
 		# type: (str) -> None
 		"""
 		speak関数
@@ -49,16 +53,19 @@ class Face_cut:
 		except CvBridgeError:
 			print "Error at CVBridge"
 
-	def callback(self, msg):
-		print "callback"
-		if msg.data == "02":
-			print msg
+	def activate_callback(self, msg):
+		if msg.data == self.id:
 			self.face_count()
+			self.activate_pub.publish(Activate(id=self.id + 1))
 
 	def face_count(self):
 		while True:
-			# print "wait 10 munites"
-			# rospy.sleep(10)
+			self.speak("Count the number of people after 5 seconds.")
+			r = rospy.Rate(1)
+			print "wait 10 second"
+			for i in range(5):
+				print i + 1
+				r.sleep()
 
 			while self.color_image is None:
 				print "画像待機"
@@ -71,22 +78,23 @@ class Face_cut:
 				print "顔が認識できません"
 				continue
 
-			if not os.path.exists(pre_path):
-				os.mkdir(pre_path)
+			# ファイルの削除&生成
+			if os.path.exists(pre_path):
+				shutil.rmtree(pre_path)
+			os.mkdir(pre_path)
 
 			for i in range(len(face_rects)):
 				[x, y, w, h] = face_rects[i]
 				print face_rects[i]
-				imgCroped = cv2.resize(self.color_image[y:y + h, x:x + w], (96, 96))  ##パラメータ変更要
+				img_cropped = cv2.resize(self.color_image[y:y + h, x:x + w], (96, 96))  ##パラメータ変更要
 				filename = pre_path + ("/img_%02d.png" % i)
-				cv2.imwrite(filename, imgCroped)
+				cv2.imwrite(filename, img_cropped)
 			m_count = mf.main("男女認識")
 			f_count = len(face_rects) - m_count
 			self.speak('There are {0} male and {1} female.'.format(m_count, f_count))
-			self.pub3.publish('03')
 			break
 
 
 if __name__ == "__main__":
-	Face_cut()
+	FaceCut(2)
 	rospy.spin()

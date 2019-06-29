@@ -5,7 +5,7 @@ import model as M
 import os
 import numpy as np
 from PIL import Image
-
+import shutil
 import chainer.links as L
 from chainer.datasets import tuple_dataset
 from chainer import serializers
@@ -51,11 +51,15 @@ def main(msg):
 	model = M.Alex()
 	model = L.Classifier(model)
 
-	if not os.path.exists(female_path):
-		os.mkdir(female_path)
+	# ファイルの削除&生成
+	if os.path.exists(female_path):
+		shutil.rmtree(female_path)
+	os.mkdir(female_path)
 
-	if not os.path.exists(male_path):
-		os.mkdir(male_path)
+	# ファイルの削除&生成
+	if os.path.exists(male_path):
+		shutil.rmtree(male_path)
+	os.mkdir(male_path)
 
 	serializers.load_npz(modelpath, model)
 
