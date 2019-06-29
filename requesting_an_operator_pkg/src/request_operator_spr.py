@@ -54,7 +54,8 @@ class FaceCut:
 			print "Error at CVBridge"
 
 	def activate_callback(self, msg):
-		if msg.data == self.id:
+		# type:(Activate)->None
+		if msg.id == self.id:
 			self.face_count()
 			self.activate_pub.publish(Activate(id=self.id + 1))
 
