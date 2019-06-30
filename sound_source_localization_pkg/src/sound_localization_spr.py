@@ -53,6 +53,7 @@ class SoundLocalizationSPR:
         array.data.append(0)
         array.data.append(0)
         array.data.append(0)
+        array.data.append(0)
         self.move_velocity_pub.publish(array)
     
     def respeaker_callback(self, data):
