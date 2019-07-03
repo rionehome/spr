@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
+import sys
+
 import rospy
 import cv2
 import os
@@ -7,6 +10,8 @@ import shutil
 from sound_system.srv import StringService
 from start_pkg.msg import Activate
 from sensor_msgs.msg import Image
+from tfpose_ros.msg import Persons, Person, BodyPartElm
+
 import male_female_predict as mf
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -27,13 +32,17 @@ class FaceCut:
     def __init__(self, activate_id):
         rospy.init_node('req_operator_spr')
         
-        rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+        # rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
+        rospy.Subscriber("/tf_pose/kinect_image", Image, self.image_callback)
+        rospy.Subscriber("/pose_estimator/pose_3d", Persons, self.image_callback)
         rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
         
         self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
         self.id = activate_id
         self.bridge = CvBridge()
+        self.poses = []
         self.color_image = None
+        self.activate_flag = False
     
     @staticmethod
     def speak(sentence):
@@ -46,6 +55,13 @@ class FaceCut:
         rospy.wait_for_service("/sound_system/speak")
         rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
     
+    def activate_callback(self, msg):
+        # type:(Activate)->None
+        if msg.id == self.id:
+            self.activate_flag = True
+            self.face_count()
+            self.activate_pub.publish(Activate(id=self.id + 1))
+    
     def image_callback(self, image):
         # type: (Image)->None
         try:
@@ -53,20 +69,48 @@ class FaceCut:
         except CvBridgeError:
             print "Error at CVBridge"
     
-    def activate_callback(self, msg):
-        # type:(Activate)->None
-        if msg.id == self.id:
-            self.face_count()
-            self.activate_pub.publish(Activate(id=self.id + 1))
+    def tfpose_callback(self, msg):
+        # type:(Persons)->None
+        self.poses = copy.deepcopy(msg.persons)
+    
+    def get_face_rects(self):
+        # type:()->list
+        rects = []
+        for person in self.poses:
+            
+            min_point = (sys.float_info.max, sys.float_info.max)
+            max_point = (0.0, 0.0)
+            center = (-1.0, -1.0)
+            for body in person:
+                body_image_x = body.x * 640 + 0.5
+                body_image_y = body.x * 480 + 0.5
+                if 0 <= body.part_id < 5:
+                    if min_point[0] > body_image_x:
+                        min_point = (body_image_x, body_image_y)
+                    if max_point[0] < body_image_x:
+                        max_point = (body_image_x, body_image_y)
+                if body.part_id == -1:
+                    center = (body_image_x, body_image_y)
+            # 鼻が認識していない場合
+            if center[1] == -1:
+                center = ((min_point[0] + max_point[0]) / 2, min_point[1] + max_point[1] / 2)
+            x = min_point[0]
+            y = center[1] - ((max_point[0] - min_point[0]) / 2)
+            w = max_point[0] - min_point[0]
+            h = max_point[0] - min_point[0]
+            rects.append([x, y, w, h])
+        
+        return rects
     
     def face_count(self):
         while True:
             while self.color_image is None:
                 print "画像待機"
             
-            image_gray = cv2.cvtColor(self.color_image, cv2.COLOR_RGB2GRAY)
-            cascade = cv2.CascadeClassifier(face_cascade_path)
-            face_rects = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
+            # image_gray = cv2.cvtColor(self.color_image, cv2.COLOR_RGB2GRAY)
+            # cascade = cv2.CascadeClassifier(face_cascade_path)
+            # face_rects = cascade.detectMultiScale(image_gray, scaleFactor=1.2, minNeighbors=2, minSize=(2, 2))
+            face_rects = self.get_face_rects()
             print face_rects
             if len(face_rects) <= 0:
                 print "顔が認識できません"
@@ -79,7 +123,6 @@ class FaceCut:
             
             for i in range(len(face_rects)):
                 [x, y, w, h] = face_rects[i]
-                print face_rects[i]
                 img_cropped = cv2.resize(self.color_image[y:y + h, x:x + w], (96, 96))  ##パラメータ変更要
                 filename = pre_path + ("/img_%02d.png" % i)
                 cv2.imwrite(filename, img_cropped)
