@@ -8,6 +8,7 @@
 	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
 	<include file="$(find freenect_launch)/launch/freenect.launch"/>
 	<include file="$(find respeaker_ros)/launch/respeaker.launch"/>
+	<include file="$(find tfpose_ros)/launch/kinect.launch"/>
 
 	<node pkg="move" name="MovementVelocityDesignation" respawn="false" type="MovementVelocityDesignation"/>
 	<node pkg="move" name="MovementAmountDesignation" respawn="false" type="MovementAmountDesignation"/>
