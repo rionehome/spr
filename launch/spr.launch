@@ -1,0 +1,22 @@
+<launch>
+
+	<node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+
+   	<include file="$(find freenect_launch)/launch/freenect.launch"/>
+	<include file="$(find sound_system)/launch/speak.launch"/>
+	<include file="$(find sound_system)/launch/sphinx.launch"/>
+	<include file="$(find sound_system)/launch/log.launch"/>
+	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+	<include file="$(find tfpose_ros)/launch/kinect.launch"/>
+	<include file="$(find respeaker_ros)/launch/respeaker.launch"/>
+
+	<node pkg="move" name="MovementVelocityDesignation" respawn="false" type="MovementVelocityDesignation"/>
+	<node pkg="move" name="MovementAmountDesignation" respawn="false" type="MovementAmountDesignation"/>
+
+    <node pkg="requesting_an_operator_pkg" name="req_operator_spr" output="screen" type="request_operator_spr.py"/>
+    <node pkg="sound_source_localization_pkg" name="sound_localization" output="screen" type="sound_localization_spr.py"/>
+    <node pkg="start_pkg" name="start_spr" output="screen" type="start_spr.py"/>
+    <node pkg="the_riddle_game_pkg" name="riddle_game_spr" output="screen" type="riddle_game_spr.py"/>
+    <node pkg="wait_and_turn_pkg" name="wait_turn_spr" output="screen" type="wait_turn_spr.py"/>
+
+</launch>
