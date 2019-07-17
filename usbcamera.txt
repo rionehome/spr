@@ -1,0 +1,3 @@
+rosparam set usb_cam/video_device "/dev/video1"
+rosparam set usb_cam/image_width 700
+rosparam set usb_cam/image_height 480
