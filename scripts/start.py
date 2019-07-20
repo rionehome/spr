@@ -7,7 +7,7 @@ import rospy
 from std_msgs.msg import String
 
 
-class StartSPR:
+class Start:
     def __init__(self, activate_id):
         rospy.init_node('start')
         rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
@@ -64,5 +64,5 @@ class StartSPR:
 
 
 if __name__ == '__main__':
-    StartSPR(0)
+    Start(0)
     rospy.spin()
