@@ -5,19 +5,15 @@ from spr.msg import Activate
 
 
 class PersonRecognition:
-    def __init__(self):
-        rospy.Subscriber("/spr/activate/0", Activate, activate_callback)
+    def __init__(self, activate_id):
+        rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
     
-    def test_callback(self, msg):
-        print msg
-
-
-def activate_callback(msg):
-    print msg
-    person = PersonRecognition()
-    rospy.spin()
+    def activate_callback(self, msg):
+        # type:(Activate)->None
+        
+        pass
 
 
 if __name__ == '__main__':
-    rospy.init_node("activate")
+    PersonRecognition(1)
     rospy.spin()

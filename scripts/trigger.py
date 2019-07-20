@@ -5,7 +5,7 @@ import rospy
 from spr.msg import Activate
 
 
-class Launch:
+class Trigger:
     def __init__(self):
         rospy.init_node("launch")
         rospy.Subscriber("/mobile_base/events/button", ButtonEvent, self.kobuki_button_callback)
@@ -23,5 +23,5 @@ class Launch:
 
 
 if __name__ == '__main__':
-    Launch()
+    Trigger()
     rospy.spin()
