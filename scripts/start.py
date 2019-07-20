@@ -15,27 +15,6 @@ class Start:
         self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
         self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
     
-    def activate_callback(self, msg):
-        # type: (Activate)->None
-        print msg
-        self.resume_start("spr_sound")
-    
-    def sound_recognition_callback(self, msg):
-        # type:(String)->None
-        """
-        音声認識の結果を受け取る
-        :param msg:
-        :return:
-        """
-        if msg.data == "start game":
-            self.start()
-    
-    def amount_signal_callback(self, data):
-        # type:(Int32)->None
-        if data.data == 1:
-            return
-        self.activate_pub.publish(Activate())
-    
     def move_turn(self, angle):
         """
         角度送信
@@ -71,19 +50,43 @@ class Start:
         response = rospy.ServiceProxy("/sound_system/recognition", StringService)(dict_name)
         return response.response
     
-    def start(self):
-        self.speak("Hello, everyone, let\'s start game.")
-        # 10秒待機
-        r = rospy.Rate(1)
-        print "wait 10 second"
-        for i in range(10):
-            print i + 1
-            r.sleep()
-        
-        # 180度回転
-        self.move_turn(180)
-        
-        # amount_signal_callbackへ->
+    #########################################################################################################
+    
+    def activate_callback(self, msg):
+        # type: (Activate)->None
+        print msg
+        # 音声認識スタート
+        print "Please say \"start game\"."
+        self.resume_start("spr_sound")
+    
+    def sound_recognition_callback(self, msg):
+        # type:(String)->None
+        """
+        音声認識の結果を受け取る
+        :param msg:
+        :return:
+        """
+        if msg.data == "start game":
+            self.speak("Hello, everyone, let\'s start game.")
+            # 10秒待機
+            r = rospy.Rate(1)
+            print "wait 10 second"
+            for i in range(10):
+                print i + 1
+                r.sleep()
+            # 180度回転
+            self.move_turn(180)  # amount_signal_callbackへ->
+    
+    def amount_signal_callback(self, data):
+        # type:(Int32)->None
+        """
+        180度回転が終わったという信号を受け取る
+        :param data:
+        :return:
+        """
+        if data.data == 1:
+            return
+        self.activate_pub.publish(Activate())
 
 
 if __name__ == '__main__':
