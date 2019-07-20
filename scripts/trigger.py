@@ -18,6 +18,7 @@ class Trigger:
         :param msg:
         :return:
         """
+        print msg, "@Trigger"
         if msg.button == 0 and msg.state == 1:
             self.activate_pub.publish(Activate())
 

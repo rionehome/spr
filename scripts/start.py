@@ -54,7 +54,7 @@ class Start:
     
     def activate_callback(self, msg):
         # type: (Activate)->None
-        print msg
+        print msg, "@Start"
         # 音声認識スタート
         print "Please say \"start game\"."
         self.resume_start("spr_sound")
