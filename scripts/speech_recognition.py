@@ -17,7 +17,7 @@ class SpeechRecognition:
         self.a_q_dict = self.read_q_a(self.q_a_path)
         self.phase_count = 0
         self.activate_flag = False
-        self.angle_list = []
+        self.sound_source_angle_list = []
         self.recognition_result = ""
         
         rospy.init_node('speech_recognition')
@@ -25,17 +25,17 @@ class SpeechRecognition:
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
         self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
     
-    def respeaker_callback(self, data):
+    def respeaker_callback(self, msg):
         # type:(Int32)->None
         """
         angle_listにスタック
-        :param data:
+        :param msg:
         :return:
         """
-        angle = data.data
-        if len(self.angle_list) > 10:
-            self.angle_list.pop(0)
-        self.angle_list.append(angle)
+        angle = msg.data
+        if len(self.sound_source_angle_list) > 10:
+            self.sound_source_angle_list.pop(0)
+        self.sound_source_angle_list.append(angle)
     
     @staticmethod
     def resume_start(dict_name):
@@ -82,7 +82,7 @@ class SpeechRecognition:
         :return:
         """
         # 回転メッセージを投げる
-        angle = self.angle_list[3]  # 時間を遡る
+        angle = self.sound_source_angle_list[3]  # 時間を遡る
         if angle - 180 > 0:
             angle = -(360 - angle)
         self.move_turn(angle)
@@ -102,6 +102,11 @@ class SpeechRecognition:
     
     def activate_callback(self, msg):
         # type: (Activate)->None
+        """
+        activate_id受け取り
+        :param msg:
+        :return:
+        """
         self.activate_flag = True
         print msg, "@SpeechRecognition"
         # 音声認識スタート
@@ -128,18 +133,24 @@ class SpeechRecognition:
             print __answer__
             self.speak(__answer__)
             self.phase_count += 1
+            self.resume_start("spr_sample_sphinx")
         else:
-            pass
+            # 音源定位あり
+            self.turn_sound_source()
     
-    def amount_signal_callback(self, data):
+    def amount_signal_callback(self, msg):
         # type:(Int32)->None
         """
         180度回転が終わったという信号を受け取る
-        :param data:
+        :param msg:
         :return:
         """
-        if data.data == 1:
+        if msg.data == 1:
             return
+        __answer__ = self.a_q_dict[self.recognition_result]
+        print __answer__
+        self.speak(__answer__)
+        self.resume_start("spr_sample_sphinx")
 
 
 if __name__ == '__main__':

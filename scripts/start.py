@@ -9,6 +9,8 @@ from std_msgs.msg import String, Float64MultiArray, Int32
 
 class Start:
     def __init__(self, activate_id):
+        self.activate_flag = False
+        
         rospy.init_node('start')
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
         rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
@@ -54,6 +56,7 @@ class Start:
     
     def activate_callback(self, msg):
         # type: (Activate)->None
+        self.activate_flag = True
         print msg, "@Start"
         # 音声認識スタート
         print "Please say \"start game\"."
@@ -66,6 +69,9 @@ class Start:
         :param msg:
         :return:
         """
+        if not self.activate_flag:
+            return
+        
         if msg.data == "start game":
             self.speak("Hello, everyone, let\'s start game.")
             # 10秒待機
