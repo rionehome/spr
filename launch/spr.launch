@@ -1,22 +1,30 @@
 <launch>
+    <node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
 
-	<node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+    <group ns="sound_system">
+        <node pkg="sound_system" name="speak" output="screen" respawn="false" type="speak.py"/>
+        <node pkg="sound_system" name="sphinx" type="sphinx.py" output="screen">
+            <param name="dict" value="follow_me_sphinx.dict"/>
+            <param name="gram" value="follow_me_sphinx.gram"/>
+        </node>
+        <node pkg="sound_system" name="log" output="screen" respawn="false" type="log.py"/>
+    </group>
 
-   	<include file="$(find freenect_launch)/launch/freenect.launch"/>
-	<include file="$(find sound_system)/launch/speak.launch"/>
-	<include file="$(find sound_system)/launch/sphinx.launch"/>
-	<include file="$(find sound_system)/launch/log.launch"/>
-	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
-	<include file="$(find tfpose_ros)/launch/kinect.launch"/>
-	<include file="$(find respeaker_ros)/launch/respeaker.launch"/>
+    <node name="respeaker_node" pkg="respeaker_ros" type="respeaker_node.py"/>
+    <node name="static_transformer" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map respeaker_base 100"/>
 
-	<node pkg="move" name="MovementVelocityDesignation" respawn="false" type="MovementVelocityDesignation"/>
-	<node pkg="move" name="MovementAmountDesignation" respawn="false" type="MovementAmountDesignation"/>
+    <group ns="move">
+        <node pkg="move" name="velocity" respawn="false" type="MovementVelocityDesignation"/>
+	    <node pkg="move" name="amount" respawn="false" type="MovementAmountDesignation"/>
+    </group>
 
-    <node pkg="requesting_an_operator_pkg" name="req_operator_spr" output="screen" type="request_operator_spr.py"/>
-    <node pkg="sound_source_localization_pkg" name="sound_localization" output="screen" type="sound_localization_spr.py"/>
-    <node pkg="start_pkg" name="start_spr" output="screen" type="start_spr.py"/>
-    <node pkg="the_riddle_game_pkg" name="riddle_game_spr" output="screen" type="riddle_game_spr.py"/>
-    <node pkg="wait_and_turn_pkg" name="wait_turn_spr" output="screen" type="wait_turn_spr.py"/>
+    <group ns="spr">
+        <node pkg="spr" name="trigger" output="screen" respawn="false" type="trigger.py"/>
+        <node pkg="spr" name="start" output="screen" respawn="false" type="start.py"/>
+        <node pkg="spr" name="person_recognition" output="screen" respawn="false" type="person_recognition.py"/>
+        <node pkg="spr" name="speech_recognition" output="screen" respawn="false" type="speech_recognition.py"/>
+    </group>
 
 </launch>

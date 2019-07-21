@@ -1,73 +1,105 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sound_system.srv import StringService
-from start_pkg.msg import Activate
+from spr.msg import Activate
 
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64MultiArray, Int32
 
 
-class StartSPR:
-	def __init__(self, activate_id):
-		rospy.init_node('start_spr')
-
-		rospy.Subscriber("/spr/activate", Activate, self.activate_callback)
-
-		self.activate_pub = rospy.Publisher("/spr/activate", Activate, queue_size=10)
-		self.change_dict_pub = rospy.Publisher("/sound_system/sphinx/dict", String, queue_size=10)
-		self.change_gram_pub = rospy.Publisher("/sound_system/sphinx/gram", String, queue_size=10)
-
-		self.id = activate_id
-
-		print "start"
-
-	@staticmethod
-	def speak(sentence):
-		# type: (str) -> None
-		"""
-		発話関数
-		:param sentence:
-		:return:
-		"""
-		rospy.wait_for_service("/sound_system/speak")
-		rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
-
-	def resume_text(self, dict_name):
-		# type: (str)->str
-		"""
-		音声認識
-		:return:
-		"""
-		self.change_dict_pub.publish(dict_name + ".dict")
-		self.change_gram_pub.publish(dict_name + ".gram")
-		rospy.wait_for_service("/sound_system/recognition")
-		response = rospy.ServiceProxy("/sound_system/recognition", StringService)()
-		return response.response
-
-	def activate_callback(self, msg):
-		# type: (Activate)->None
-		if msg.id == self.id:
-			self.start()
-
-	def start(self):
-
-		# "start game"認識
-		while True:
-			text = self.resume_text("spr_sound")
-			if text == "start game":
-				break
-
-		self.speak("Hello, everyone, let\'s start game")
-
-		# 10秒待機
-		r = rospy.Rate(1)
-		print "wait 10 second"
-		for i in range(10):
-			print i + 1
-			r.sleep()
-		self.activate_pub.publish(Activate(id=self.id + 1))
+class Start:
+    def __init__(self, activate_id):
+        rospy.init_node('start')
+        
+        self.activate_flag = False
+        
+        rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
+        rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
+        rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
+        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
+        self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
+    
+    def move_turn(self, angle):
+        """
+        角度送信
+        :param angle:
+        :return:
+        """
+        array = Float64MultiArray()
+        array.data.append(0)
+        array.data.append(0)
+        array.data.append(angle)
+        array.data.append(1)
+        self.move_amount_pub.publish(array)
+    
+    @staticmethod
+    def speak(sentence):
+        # type: (str) -> None
+        """
+        発話関数
+        :param sentence:
+        :return:
+        """
+        rospy.wait_for_service("/sound_system/speak")
+        rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
+    
+    @staticmethod
+    def resume_start(dict_name):
+        # type: (str)->str
+        """
+        音声認識
+        :return:
+        """
+        rospy.wait_for_service("/sound_system/recognition")
+        response = rospy.ServiceProxy("/sound_system/recognition", StringService)(dict_name)
+        return response.response
+    
+    #########################################################################################################
+    
+    def activate_callback(self, msg):
+        # type: (Activate)->None
+        self.activate_flag = True
+        print msg, "@Start"
+        # 音声認識スタート
+        print "Please say \"start game\"."
+        self.resume_start("spr_sound")
+    
+    def sound_recognition_callback(self, msg):
+        # type:(String)->None
+        """
+        音声認識の結果を受け取る
+        :param msg:
+        :return:
+        """
+        if not self.activate_flag:
+            return
+        
+        if msg.data == "start game":
+            self.speak("Hello, everyone, let\'s start game.")
+            # 10秒待機
+            r = rospy.Rate(1)
+            print "wait 10 second"
+            for i in range(10):
+                print i + 1
+                r.sleep()
+            # 180度回転
+            self.move_turn(180)  # amount_signal_callbackへ->
+    
+    def amount_signal_callback(self, data):
+        # type:(Int32)->None
+        """
+        180度回転が終わったという信号を受け取る
+        :param data:
+        :return:
+        """
+        if not self.activate_flag:
+            return
+        if data.data == 1:
+            return
+        self.activate_pub.publish(Activate())
+        self.activate_flag = False
 
 
 if __name__ == '__main__':
-	StartSPR(0)
-	rospy.spin()
+    Start(0)
+    rospy.spin()
