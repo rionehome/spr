@@ -12,10 +12,8 @@
         <node pkg="sound_system" name="log" output="screen" respawn="false" type="log.py"/>
     </group>
 
-    <group ns="respeaker">
-        <node name="respeaker_node" pkg="respeaker_ros" type="respeaker_node.py"/>
-        <node name="static_transformer" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map respeaker_base 100"/>
-    </group>
+    <node name="respeaker_node" pkg="respeaker_ros" type="respeaker_node.py"/>
+    <node name="static_transformer" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map respeaker_base 100"/>
 
     <group ns="move">
         <node pkg="move" name="velocity" respawn="false" type="MovementVelocityDesignation"/>

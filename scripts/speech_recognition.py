@@ -12,6 +12,8 @@ from std_msgs.msg import String, Float64MultiArray, Int32
 
 class SpeechRecognition:
     def __init__(self, activate_id):
+        rospy.init_node('speech_recognition')
+        
         self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
         self.q_a_path = self.etc_path + "question_answer/question_answer_list.csv"
         self.a_q_dict = self.read_q_a(self.q_a_path)
@@ -20,8 +22,9 @@ class SpeechRecognition:
         self.sound_source_angle_list = []
         self.recognition_result = ""
         
-        rospy.init_node('speech_recognition')
         rospy.Subscriber("/sound_direction", Int32, self.respeaker_callback)
+        rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
+        rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
         self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
     
@@ -125,10 +128,12 @@ class SpeechRecognition:
         self.recognition_result = msg.data
         if self.recognition_result not in self.a_q_dict:
             print "質問リストにありませんでした。"
+            self.resume_start("spr_sample_sphinx")
             return
         
         if self.phase_count < 5:
             # 音源定位なし
+            print "phase:", self.phase_count
             __answer__ = self.a_q_dict[self.recognition_result]
             print __answer__
             self.speak(__answer__)
@@ -145,6 +150,8 @@ class SpeechRecognition:
         :param msg:
         :return:
         """
+        if not self.activate_flag:
+            return
         if msg.data == 1:
             return
         __answer__ = self.a_q_dict[self.recognition_result]

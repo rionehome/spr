@@ -9,11 +9,13 @@ from std_msgs.msg import String, Float64MultiArray, Int32
 
 class Start:
     def __init__(self, activate_id):
+        rospy.init_node('start')
+        
         self.activate_flag = False
         
-        rospy.init_node('start')
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
         rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
+        rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
         self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
         self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
     
@@ -90,9 +92,12 @@ class Start:
         :param data:
         :return:
         """
+        if not self.activate_flag:
+            return
         if data.data == 1:
             return
         self.activate_pub.publish(Activate())
+        self.activate_flag = False
 
 
 if __name__ == '__main__':

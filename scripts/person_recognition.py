@@ -15,13 +15,14 @@ from module import gender_predict
 
 class PersonRecognition:
     def __init__(self, activate_id):
+        rospy.init_node("person recognition")
+
         self.color_image = None
         self.bridge = CvBridge()
         self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
         
-        rospy.init_node("person recognition")
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
-        rospy.Subscriber("/camera/rgb/image_raw", Image, self.color_image_callback)
+        rospy.Subscriber("/camera/color/image_raw", Image, self.color_image_callback)
         self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
     
     @staticmethod

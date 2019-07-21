@@ -16,11 +16,11 @@ import glob
 
 class GenderPredict:
     def __init__(self, persons_path):
-        self.model_path = "{}/etc/AlexlikeMSGD.model".format(rospkg.RosPack().get_path('sound_system'))
+        self.model_path = "{}/etc/AlexlikeMSGD.model".format(rospkg.RosPack().get_path('spr'))
         self.persons_path = persons_path
         self.female_path = self.persons_path + "females/"
         self.male_path = self.persons_path + "males/"
-        self.chainer_model = chainer.links.Classifier(model)
+        self.chainer_model = chainer.links.Classifier(model.Alex())
         
         # ディレクトリの初期化
         self.reset_dir(self.male_path)
@@ -47,13 +47,15 @@ class GenderPredict:
         __labels__ = []
         
         # 画像の読み込み
-        __image_files__ = glob.glob(self.persons_path + "*")
+        __image_files__ = glob.glob(self.persons_path + "*.png")
+        print __image_files__
         for image_file in __image_files__:
             __image__ = Image.open(image_file)
+            print __image__
             try:
-                __transposed_image__ = np.ndarray(np.asanyarray(__image__)).transpose((2, 0, 1)).astype(
-                    np.float32) / 255.
+                __transposed_image__ = np.asarray(__image__).transpose((2, 0, 1)).astype(np.float32) / 255.
             except ValueError:
+                print "value Error"
                 continue
             
             __images__.append(__transposed_image__)
@@ -73,6 +75,7 @@ class GenderPredict:
         
         __male_count__ = 0
         __female_count__ = 0
+        print dataset
         for x, t in dataset:
             self.chainer_model.to_cpu()
             y = self.chainer_model.predictor(x[None, ...]).data.argmax(axis=1)[0]
