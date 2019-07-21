@@ -12,8 +12,8 @@ from std_msgs.msg import String, Float64MultiArray, Int32
 
 class SpeechRecognition:
     def __init__(self, activate_id):
-        self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('sound_system'))
-        self.q_a_path = "{}/question_answer/question_answer_list.csv".format(self.etc_path)
+        self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
+        self.q_a_path = self.etc_path + "question_answer/question_answer_list.csv"
         self.a_q_dict = self.read_q_a(self.q_a_path)
         self.phase_count = 0
         self.activate_flag = False

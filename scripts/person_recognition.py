@@ -17,7 +17,7 @@ class PersonRecognition:
     def __init__(self, activate_id):
         self.color_image = None
         self.bridge = CvBridge()
-        self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('sound_system'))
+        self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
         
         rospy.init_node("person recognition")
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
@@ -68,7 +68,7 @@ class PersonRecognition:
         :param face_rects:
         :return:
         """
-        __persons_path__ = "{}/log/persons/".format(self.etc_path)
+        __persons_path__ = self.etc_path + "log/persons/"
         self.reset_dir(__persons_path__)
         for i in range(len(face_rects)):
             [x, y, w, h] = face_rects[i]
@@ -84,7 +84,7 @@ class PersonRecognition:
         """
         self.reset_dir("males")
         self.reset_dir("females")
-        return gender_predict.GenderPredict("{}/log/persons/".format(self.etc_path)).calc_judge()
+        return gender_predict.GenderPredict(self.etc_path + "log/persons/").calc_judge()
     
     def color_image_callback(self, msg):
         # type:(Image)->None
