@@ -97,6 +97,8 @@ class PersonRecognition:
         except CvBridgeError:
             print "Error at CVBridge"
     
+    ##############################################################################################
+    
     def activate_callback(self, msg):
         # type:(Activate)->None
         """
