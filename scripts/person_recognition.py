@@ -22,6 +22,7 @@ class PersonRecognition:
         rospy.init_node("person recognition")
         rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
         rospy.Subscriber("/camera/rgb/image_raw", Image, self.color_image_callback)
+        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
     
     @staticmethod
     def reset_dir(dir_path):
@@ -114,6 +115,8 @@ class PersonRecognition:
         
         self.speak("There are {} people.".format(person_count))
         self.speak("There are {} male and {} female.".format(gender_count[0], gender_count[1]))
+        
+        self.activate_pub.publish(Activate())
 
 
 if __name__ == '__main__':
