@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sound_system.srv import StringService
-from spr.msg import Activate
 
 import rospy
 from std_msgs.msg import String, Float64MultiArray, Int32
@@ -13,10 +12,10 @@ class Start:
         
         self.activate_flag = False
         
-        rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
+        rospy.Subscriber("/spr/activate/{}".format(activate_id), String, self.activate_callback)
         rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
         rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
-        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
+        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), String, queue_size=10)
         self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
     
     def move_turn(self, angle):
@@ -57,7 +56,7 @@ class Start:
     #########################################################################################################
     
     def activate_callback(self, msg):
-        # type: (Activate)->None
+        # type: (String)->None
         self.activate_flag = True
         print msg, "@Start"
         # 音声認識スタート
@@ -96,7 +95,7 @@ class Start:
             return
         if data.data == 1:
             return
-        self.activate_pub.publish(Activate())
+        self.activate_pub.publish(String())
         self.activate_flag = False
 
 
