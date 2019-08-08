@@ -15,7 +15,6 @@ class SpeechRecognition:
         self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
         self.q_a_path = self.etc_path + "question_answer/question_answer_list.csv"
         self.a_q_dict = self.read_q_a(self.q_a_path)
-        self.phase_count = 0
         self.activate_flag = False
         self.sound_source_angle_list = []
         self.recognition_result = ""
@@ -109,7 +108,7 @@ class SpeechRecognition:
         :return:
         """
         self.activate_flag = True
-        print msg, "@SpeechRecognition"
+        print msg, "@SpeechRecognitionRotation"
         # 音声認識スタート
         self.resume_start("spr_sample_sphinx")
     
@@ -129,17 +128,7 @@ class SpeechRecognition:
             self.resume_start("spr_sample_sphinx")
             return
         
-        if self.phase_count < 5:
-            # 音源定位なし
-            print "phase:", self.phase_count
-            __answer__ = self.a_q_dict[self.recognition_result]
-            print __answer__
-            self.speak(__answer__)
-            self.phase_count += 1
-            self.resume_start("spr_sample_sphinx")
-        else:
-            # 音源定位あり
-            self.turn_sound_source()
+        self.turn_sound_source()
     
     def amount_signal_callback(self, msg):
         # type:(Int32)->None
@@ -159,5 +148,5 @@ class SpeechRecognition:
 
 
 if __name__ == '__main__':
-    SpeechRecognition(2)
+    SpeechRecognition(3)
     rospy.spin()

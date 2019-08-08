@@ -6,7 +6,7 @@ import rospy
 from std_msgs.msg import String, Float64MultiArray, Int32
 
 
-class Start:
+class BeginningGame:
     def __init__(self, activate_id):
         rospy.init_node('start')
         
@@ -58,7 +58,7 @@ class Start:
     def activate_callback(self, msg):
         # type: (String)->None
         self.activate_flag = True
-        print msg, "@Start"
+        print msg, "@BeginningGame"
         # 音声認識スタート
         print "Please say \"start game\"."
         self.resume_start("spr_sound")
@@ -100,5 +100,5 @@ class Start:
 
 
 if __name__ == '__main__':
-    Start(0)
+    BeginningGame(0)
     rospy.spin()
