@@ -7,7 +7,7 @@ from std_msgs.msg import String
 
 class Trigger:
     def __init__(self):
-        rospy.init_node("launch")
+        rospy.init_node("trigger")
         rospy.Subscriber("/mobile_base/events/button", ButtonEvent, self.kobuki_button_callback)
         self.activate_pub = rospy.Publisher("/spr/activate/0", String, queue_size=10)
     

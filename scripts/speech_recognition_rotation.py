@@ -3,9 +3,11 @@
 import csv
 import rospkg
 
+import actionlib
+from move.msg import AmountGoal, AmountAction
 from sound_system.srv import StringService
 import rospy
-from std_msgs.msg import String, Float64MultiArray, Int32
+from std_msgs.msg import String, Int32
 
 
 class SpeechRecognition:
@@ -21,9 +23,8 @@ class SpeechRecognition:
         
         rospy.Subscriber("/sound_direction", Int32, self.respeaker_callback)
         rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
-        rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
         rospy.Subscriber("/spr/activate/{}".format(activate_id), String, self.activate_callback)
-        self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
+        self.client = actionlib.SimpleActionClient("/move/amount", AmountAction)
     
     def respeaker_callback(self, msg):
         # type:(Int32)->None
@@ -54,12 +55,13 @@ class SpeechRecognition:
         :param angle:
         :return:
         """
-        array = Float64MultiArray()
-        array.data.append(0)
-        array.data.append(0)
-        array.data.append(angle)
-        array.data.append(1)
-        self.move_amount_pub.publish(array)
+        goal = AmountGoal()
+        goal.amount.angle = angle
+        goal.velocity.angular_rate = 0.5
+        
+        self.client.wait_for_server()
+        self.client.send_goal(goal)
+        self.client.wait_for_result(rospy.Duration(10))
     
     @staticmethod
     def read_q_a(path):
@@ -129,18 +131,7 @@ class SpeechRecognition:
             return
         
         self.turn_sound_source()
-    
-    def amount_signal_callback(self, msg):
-        # type:(Int32)->None
-        """
-        180度回転が終わったという信号を受け取る
-        :param msg:
-        :return:
-        """
-        if not self.activate_flag:
-            return
-        if msg.data == 1:
-            return
+        
         __answer__ = self.a_q_dict[self.recognition_result]
         print __answer__
         self.speak(__answer__)

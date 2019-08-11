@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import actionlib
 from sound_system.srv import StringService
-
 import rospy
-from std_msgs.msg import String, Float64MultiArray, Int32
+from std_msgs.msg import String
+from move.msg import AmountAction, AmountGoal
 
 
 class BeginningGame:
@@ -13,10 +14,9 @@ class BeginningGame:
         self.activate_flag = False
         
         rospy.Subscriber("/spr/activate/{}".format(activate_id), String, self.activate_callback)
-        rospy.Subscriber("/move/amount/signal", Int32, self.amount_signal_callback)
         rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
         self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), String, queue_size=10)
-        self.move_amount_pub = rospy.Publisher("/move/amount", Float64MultiArray, queue_size=10)
+        self.client = actionlib.SimpleActionClient("/move/amount", AmountAction)
     
     def move_turn(self, angle):
         """
@@ -24,12 +24,13 @@ class BeginningGame:
         :param angle:
         :return:
         """
-        array = Float64MultiArray()
-        array.data.append(0)
-        array.data.append(0)
-        array.data.append(angle)
-        array.data.append(1)
-        self.move_amount_pub.publish(array)
+        goal = AmountGoal()
+        goal.amount.angle = angle
+        goal.velocity.angular_rate = 0.5
+        
+        self.client.wait_for_server()
+        self.client.send_goal(goal)
+        self.client.wait_for_result(rospy.Duration(10))
     
     @staticmethod
     def speak(sentence):
@@ -81,22 +82,12 @@ class BeginningGame:
             for i in range(10):
                 print i + 1
                 r.sleep()
+            
             # 180度回転
-            self.move_turn(180)  # amount_signal_callbackへ->
-    
-    def amount_signal_callback(self, data):
-        # type:(Int32)->None
-        """
-        180度回転が終わったという信号を受け取る
-        :param data:
-        :return:
-        """
-        if not self.activate_flag:
-            return
-        if data.data == 1:
-            return
-        self.activate_pub.publish(String())
-        self.activate_flag = False
+            self.move_turn(180)
+            
+            self.activate_pub.publish(String())
+            self.activate_flag = False
 
 
 if __name__ == '__main__':

@@ -17,9 +17,11 @@ class SpeechRecognition:
         self.q_a_path = self.etc_path + "question_answer/question_answer_list.csv"
         self.q_a_dict = self.read_q_a(self.q_a_path)
         self.activate_flag = False
+        self.count = 0
         
         rospy.Subscriber("/sound_system/result", String, self.sound_recognition_callback)
         rospy.Subscriber("/spr/activate/{}".format(activate_id), String, self.activate_callback)
+        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), String, queue_size=10)
     
     @staticmethod
     def resume_start(dict_name):
@@ -92,6 +94,12 @@ class SpeechRecognition:
         print __answer__
         self.speak(__answer__)
         self.resume_start("spr_sample_sphinx")
+        self.count += 1
+        
+        if self.count >= 5:
+            self.activate_pub.publish(String())
+            self.activate_flag = False
+            return
 
 
 if __name__ == '__main__':
