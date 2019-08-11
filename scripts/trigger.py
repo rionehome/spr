@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 from kobuki_msgs.msg import ButtonEvent
 import rospy
-from spr.msg import Activate
+from std_msgs.msg import String
 
 
 class Trigger:
     def __init__(self):
-        rospy.init_node("launch")
+        rospy.init_node("trigger")
         rospy.Subscriber("/mobile_base/events/button", ButtonEvent, self.kobuki_button_callback)
-        self.activate_pub = rospy.Publisher("/spr/activate/0", Activate, queue_size=10)
+        self.activate_pub = rospy.Publisher("/spr/activate/0", String, queue_size=10)
     
     def kobuki_button_callback(self, msg):
         # type:(ButtonEvent)->None
@@ -20,7 +20,7 @@ class Trigger:
         """
         print msg, "@Trigger"
         if msg.button == 0 and msg.state == 1:
-            self.activate_pub.publish(Activate())
+            self.activate_pub.publish(String())
 
 
 if __name__ == '__main__':

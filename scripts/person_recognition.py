@@ -9,7 +9,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import rospy
 from sensor_msgs.msg import Image
 from sound_system.srv import StringService
-from spr.msg import Activate
+from std_msgs.msg import String
+
 from module import gender_predict
 
 
@@ -21,9 +22,9 @@ class PersonRecognition:
         self.bridge = CvBridge()
         self.etc_path = "{}/etc/".format(rospkg.RosPack().get_path('spr'))
         
-        rospy.Subscriber("/spr/activate/{}".format(activate_id), Activate, self.activate_callback)
+        rospy.Subscriber("/spr/activate/{}".format(activate_id), String, self.activate_callback)
         rospy.Subscriber("/camera/color/image_raw", Image, self.color_image_callback)
-        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), Activate, queue_size=10)
+        self.activate_pub = rospy.Publisher("/spr/activate/{}".format(activate_id + 1), String, queue_size=10)
     
     @staticmethod
     def reset_dir(dir_path):
@@ -101,7 +102,7 @@ class PersonRecognition:
     ##############################################################################################
     
     def activate_callback(self, msg):
-        # type:(Activate)->None
+        # type:(String)->None
         """
         activate_idの受け取り
         :param msg:
@@ -119,7 +120,7 @@ class PersonRecognition:
         self.speak("There are {} people.".format(person_count))
         self.speak("There are {} male and {} female.".format(gender_count[0], gender_count[1]))
         
-        self.activate_pub.publish(Activate())
+        self.activate_pub.publish(String())
 
 
 if __name__ == '__main__':
