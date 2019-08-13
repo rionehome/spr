@@ -87,6 +87,7 @@ class SpeechRecognition:
         __recognition_result__ = msg.data
         if __recognition_result__ not in self.q_a_dict:
             print "質問リストにありませんでした。"
+            self.speak("sorry, I don't know.")
             self.resume_start("spr_sample_sphinx")
             return
         
