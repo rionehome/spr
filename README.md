@@ -1,33 +1,13 @@
-SPR 2019度版
+SPR 2019JapanOpen版
 ====
-# デバグ
-
-start_pkgにあるtest_talker.pyをpython test_talker.pyで実行
-実行すると、トピック名、メッセージを指定できるのでデバグするnodeにトピック、メッセージを送ってください。
-
-対象：sound_source_localization_pkg　sound_localization_spr.py
-
-トピック：sound_localization
-
-指定メッセージ：04
-
-
-
-# branchを切ろう
-
 ### Overview
-start_pkg:開始合図の認識
+start:開始合図の認識
 
-wait_and_turn_pkg:停止して、180度回る
+person_recognition:開始から人間検出まで行うノード
 
-requesting_an_operator_pkg:群衆認識、及び男女認識
-
-the_riddle_game_pkg:リドルゲーム
-
-sound_source_localization_pkg:音源定位
+speech_recognition:リドルゲームから音源定位まで行うノード
 
 ## Requirement
-
 RespeakerをSound_source_localization_pkgで使用します。
 その際、Respeakerをudevで登録しないと使えません。
 方法はRi-onewiki参照
@@ -42,24 +22,8 @@ Ri-oneドライブからよっしー先輩の画像モデルをダウンロー�
 
 
 ## Usage
-まずは
-
-`roslaunch turtlebot_bringup minimal.launch`
-
-次に
-
-`roslaunch start_pkg spr.launch`
+実装中
 
 ## Install
 
 `git clone https://github.com/rionehome/spr.git`
-
-`cd spr`
-
-現状のヴァージョンはC_matsuブランチで
-
-`git checkout C_matsu`
-
-# 最後に
-
-このブランチはデバグ中につき動作を保証しません
