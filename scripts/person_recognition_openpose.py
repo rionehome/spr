@@ -95,6 +95,10 @@ class PersonRecognition:
             y = int(center[1] - ((max_point[0] - min_point[0]) / 2))
             w = int(max_point[0] - min_point[0])
             h = int(max_point[0] - min_point[0])
+            
+            if w == 0 or h == 0:
+                continue
+            
             rects.append([x, y, w, h])
         return rects
     
@@ -159,7 +163,10 @@ class PersonRecognition:
         # type:(Poses)->None
         face_rects = self.get_face_rects(msg)
         if len(face_rects) == 0:
+            self.speak("sorry, one more time.")
             self.wait_image_and_publish()
+            self.se.play(self.se.SHUTTER)
+            self.speak("Now analyzing...")
             return
         print face_rects
         person_count = self.calc_count_persons(face_rects)
