@@ -97,7 +97,7 @@ class SpeechRecognition:
         self.resume_start("spr_sample_sphinx")
         self.count += 1
         
-        if self.count >= 5:
+        if self.count >= 4:
             self.activate_pub.publish(String())
             self.activate_flag = False
             return
