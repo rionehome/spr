@@ -1,0 +1,37 @@
+<launch>
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+    <group ns="sound_system">
+        <node pkg="sound_system" name="speak" output="screen" respawn="false" type="speak.py"/>
+        <node pkg="sound_system" name="sphinx" type="sphinx.py" output="screen">
+            <param name="dict" value="follow_me_sphinx.dict"/>
+            <param name="gram" value="follow_me_sphinx.gram"/>
+        </node>
+        <node pkg="sound_system" name="log" output="screen" respawn="false" type="log.py"/>
+    </group>
+
+    <node name="respeaker_node" pkg="respeaker_ros" type="respeaker_node.py"/>
+    <node name="static_transformer" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map respeaker_base 100"/>
+    
+    <group ns="move">
+        <node pkg="move" name="velocity" respawn="false" type="velocity"/>
+	    <node pkg="move" name="amount" respawn="false" type="amount"/>
+    </group>
+
+    <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
+        <!-- <param name="model" value="mobilenet_v2_large" /> -->
+        <param name="model" value="cmu" />
+        <param name="resolution" value="640x480" />
+    </node>
+
+    <group ns="spr">
+        <node pkg="spr" name="trigger" output="screen" respawn="false" type="trigger.py"/>
+        <node pkg="spr" name="beginning_game" output="screen" respawn="false" type="beginning_game.py"/>
+        <node pkg="spr" name="person_recognition_openpose" output="screen" respawn="false" type="person_recognition_openpose.py"/>
+        <node pkg="spr" name="speech_recognition" output="screen" respawn="false" type="speech_recognition.py"/>
+        <node pkg="spr" name="speech_recognition_rotation" output="screen" respawn="false" type="speech_recognition_rotation.py"/>
+    </group>
+
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+</launch>
